@@ -79,7 +79,8 @@ dev.off()
 ## mean by zone & shore: current year
 (mean_23 <- ang_cu %>%
    group_by(zone1, shore) %>%
-   summarise("mean.angle"=mean(value), sd(value)))
+   summarise("mean.angle"=mean(value), sd(value))) %>% 
+  arrange(.,by = mean.angle)
 
 ## mean by zone: current year
 (mean_23_zone <- ang_cu %>%
@@ -93,14 +94,14 @@ dev.off()
               "sd.angle"=sd(as.numeric(value),na.rm=TRUE)))
 
 ### mean by station: current year
-mn_st_cur <- subset(df, type == "angle") %>%
+(mn_st_cur <- subset(df, type == "angle") %>%
   filter(.,year == cur.yr) %>% 
   group_by(transect, shore) %>% 
   summarise("mean.angle"=mean(as.numeric(value),na.rm=TRUE),
             "sd.angle"=sd(as.numeric(value),na.rm=TRUE),
-            .groups = "drop")
-mn_st_cur[which.min(mn_st_cur$mean.angle),]
-mn_st_cur[which.max(mn_st_cur$mean.angle),]
+            .groups = "drop") %>% 
+  arrange(.,by=mean.angle))
+head(mn_st_cur);tail(mn_st_cur)
 
 print(mean_23); print(mean_all)
 
@@ -110,12 +111,14 @@ png(file = "figs/sed.ts.mor.angle.png",
     width=12*ppi, height=6*ppi, res=ppi)
 ggplot(data = df_tm[df_tm$type=="angle",],
        aes(y = as.numeric(value), x = year, fill = zone1))+
+  geom_hline(yintercept = seq(0,12,by=2),colour="lightgrey",linetype=2)+
+  geom_vline(xintercept = seq(2008,2024,by=1),colour="lightgrey",linetype=2)+
   geom_boxplot(aes(group=year),outlier.shape = NA)+
   geom_jitter(width = 0.1, height = 0,alpha=0.3)+
   geom_smooth(method = "loess", colour = "red", span = .9)+
   facet_grid(shore~zone1)+
   scale_colour_manual(name = "", values=cbPalette)+
-  scale_fill_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPaletteFill[c(1:4,8)])+
   scale_x_continuous(breaks = seq(2008, 2024, by = 2))+
   xlab("Year") + ylab("Angle")+
   theme(plot.title = element_text(face = "bold"),
@@ -128,15 +131,18 @@ ggplot(data = df_tm[df_tm$type=="angle",],
   labs(title = paste0("Beach slopes recorded since 2008 as part of the SFGPBM programme"))
 dev.off()
 
-## Statistical comparison ####
-##re-level to compare all with Inside
-ang_cu$zone1 <- factor(ang_cu$zone1,levels=c("Inside","Above","Inside2","Below"))
+## Statistical comparisons ####
+tic("statistical comparison: Angle")
+ang_cu_lnc <- droplevels(ang_cu %>% filter(., zone1 != "Wash"))
 
-ang_cur_mod1 <- lmerTest::lmer(value ~ zone1 + (1|shore) , data = ang_cu,REML=FALSE)
-ang_cur_mod2 <- lmerTest::lmer(value ~ zone1 + (transect|shore) , data = ang_cu,REML=FALSE)
-anova(ang_cur_mod3 <- lmerTest::lmer(value ~ zone1 + (1|transect)+(1|shore) , data = ang_cu,REML=FALSE))
-anova(ang_cur_mod3.1 <- lmerTest::lmer(value ~ zone1 + (shore|transect) , data = ang_cu,REML=TRUE))
-anova(ang_cur_mod4 <- lmerTest::lmer(value ~ zone1*shore + (1|transect) , data = ang_cu,REML=FALSE))
+##re-level to compare all with Inside
+ang_cu_lnc$zone1 <- factor(ang_cu_lnc$zone1,levels=c("Inside","Above","Inside2","Below"))
+
+ang_cur_mod1 <- lmerTest::lmer(value ~ zone1 + (1|shore) , data = ang_cu_lnc,REML=FALSE)
+ang_cur_mod2 <- lmerTest::lmer(value ~ zone1 + (transect|shore) , data = ang_cu_lnc,REML=FALSE)
+anova(ang_cur_mod3 <- lmerTest::lmer(value ~ zone1 + (1|transect)+(1|shore) , data = ang_cu_lnc,REML=FALSE))
+anova(ang_cur_mod3.1 <- lmerTest::lmer(value ~ zone1 + (shore|transect) , data = ang_cu_lnc,REML=TRUE))
+anova(ang_cur_mod4 <- lmerTest::lmer(value ~ zone1*shore + (1|transect) , data = ang_cu_lnc,REML=FALSE))
 
 # model checking: whis is best? Lowest AIC = 'better' fit
 anova(ang_cur_mod1, ang_cur_mod2, ang_cur_mod3,ang_cur_mod3.1, ang_cur_mod4)###compare model fits
@@ -150,26 +156,35 @@ plot(performance::compare_performance(ang_cur_mod1,
                                       rank = TRUE))
 visreg::visreg(ang_cur_mod1)
 
-# go with model ang_cur_mod3.1
+# go with model ang_cur_mod1
 anova(ang_cur_mod1)
+summary(ang_cur_mod1)
+
 lmerTest::ls_means(ang_cur_mod1, test.effs = "Group",pairwise = TRUE)
 sjPlot::plot_model(ang_cur_mod1,show.values=TRUE, show.p=TRUE)
 visreg::visreg(ang_cur_mod1)
-performance::check_posterior_predictions(ang_cur_mod1)
+performance::check_predictions(ang_cur_mod1)
+toc(log = TRUE)
 
 ## time series ####
 png(file = "output/figs/sed.ang.ts.png",
     width=12*ppi, height=6*ppi, res=ppi)
 df %>% 
   filter(.,type=="angle") %>% 
+  filter(., zone1 != "Wash") %>% droplevels(.) %>% 
   mutate(value = as.numeric(value)) %>% 
+  filter(., value >= 0) %>% 
   dplyr::select(.,c(year,shore,type,value,zone1)) %>% 
   ggplot(data=., aes(x=year, y=value, fill=zone1))+
+  # ylim(0,12)+
+  geom_vline(xintercept = seq(2008,cur.yr,by=1),linetype=2, colour="lightgrey")+
+  geom_hline(yintercept = seq(0,12,by=2),linetype=2, colour="lightgrey")+
   geom_boxplot(outlier.shape = NA,
                aes(group=as.factor(year)), show.legend = FALSE)+
   geom_jitter(show.legend = FALSE, alpha=0.25)+
   facet_grid(shore~zone1)+
-  scale_fill_manual(values=cbPalette)+
+  scale_fill_manual(values=cbPaletteFill)+
+  scale_y_continuous(breaks = seq(0,12,by = 4))+
   geom_smooth(span=0.9, show.legend = FALSE, col="red",
               # method = "gam"
               method = "loess"
@@ -232,7 +247,8 @@ set.seed(pi); ggplot(data = com_cu, aes(y = value, x = zone1,
   scale_shape_manual(values = c(21:(length(unique(com_cu$zone1))+21)))+
   facet_wrap(~shore)+
   guides(fill=guide_legend(nrow=1))+
-  labs(title = paste0("Sediment compaction recorded in the ",cur.yr," monitoring programme"))
+  labs(title = paste0("Sediment compaction recorded in the ",cur.yr," monitoring programme"),
+       subtitle = "Higher values indicate more compacted sediments")
 dev.off()
 
 ## Get summary ####
@@ -287,15 +303,17 @@ ggplot(data = df_tm[df_tm$type=="cone",],
 dev.off()
 
 ## Statistical comparison ####
+## remove Wash data
+com_cu_lnc <- droplevels(com_cu %>% filter(.,zone1!="Wash"))
 ##re-level to compare all with Inside
-com_cu$zone1 <- factor(com_cu$zone1,levels=c("Inside","Above","Inside2","Below","Wash"))
+com_cu_lnc$zone1 <- factor(com_cu_lnc$zone1,levels=c("Inside","Above","Inside2","Below"))
 
-com_cur_mod1 <- lmerTest::lmer(value ~ zone1 + (1|shore) , data = com_cu,REML=FALSE)
-com_cur_mod2 <- lmerTest::lmer(value ~ zone1 + (transect|shore) , data = com_cu,REML=FALSE)
-anova(com_cur_mod3 <- lmerTest::lmer(value ~ zone1 + (1|transect) + (1|shore) , data = com_cu,REML=FALSE))
-anova(com_cur_mod3.1 <- lmerTest::lmer(value ~ zone1 + (shore|transect) , data = com_cu,REML=TRUE))
-anova(com_cur_mod3.2 <- lmerTest::lmer(value ~ zone1*shore + (shore|transect) , data = com_cu,REML=TRUE))
-anova(com_cur_mod4 <- lmerTest::lmer(value ~ zone1*shore + (1|transect), data = com_cu,REML=FALSE))
+com_cur_mod1 <- lmerTest::lmer(value ~ zone1 + (1|shore) , data = com_cu_lnc,REML=FALSE)
+com_cur_mod2 <- lmerTest::lmer(value ~ zone1 + (transect|shore) , data = com_cu_lnc,REML=FALSE)
+anova(com_cur_mod3 <- lmerTest::lmer(value ~ zone1 + (1|transect) + (1|shore) , data = com_cu_lnc,REML=FALSE))
+anova(com_cur_mod3.1 <- lmerTest::lmer(value ~ zone1 + (shore|transect) , data = com_cu_lnc,REML=TRUE))
+anova(com_cur_mod3.2 <- lmerTest::lmer(value ~ zone1*shore + (shore|transect) , data = com_cu_lnc,REML=TRUE))
+anova(com_cur_mod4 <- lmerTest::lmer(value ~ zone1*shore + (1|transect), data = com_cu_lnc,REML=FALSE))
 
 anova(com_cur_mod1,com_cur_mod2,com_cur_mod3,com_cur_mod3.1,com_cur_mod4)
 AIC(com_cur_mod1,com_cur_mod2,com_cur_mod3,com_cur_mod3.1,com_cur_mod4)
