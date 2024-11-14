@@ -146,7 +146,9 @@ anova(ang_cur_mod4 <- lmerTest::lmer(value ~ zone1*shore + (1|transect) , data =
 
 # model checking: whis is best? Lowest AIC = 'better' fit
 anova(ang_cur_mod1, ang_cur_mod2, ang_cur_mod3,ang_cur_mod3.1, ang_cur_mod4)###compare model fits
-AIC(ang_cur_mod1,ang_cur_mod2,ang_cur_mod3,ang_cur_mod3.1,ang_cur_mod4)
+AIC(ang_cur_mod1,ang_cur_mod2,ang_cur_mod3,ang_cur_mod3.1,ang_cur_mod4) %>% 
+  as.data.frame() %>%
+  arrange(AIC) %>% print()
 # ang_cur_mod1 has lowest AIC
 plot(performance::compare_performance(ang_cur_mod1,
                                       ang_cur_mod2,
@@ -281,17 +283,27 @@ mn_st_cur <- subset(df, type == "cone") %>%
 df_tm <- df
 df_tm$shore <- factor(df_tm$shore, levels=c("Upper","Mid","Low"))
 
-png(file = "figs/sed.ts.mor.pen.png",
+png(file = "output/figs/sed.ts.mor.pen.png",
     width=12*ppi, height=6*ppi, res=ppi)
-ggplot(data = df_tm[df_tm$type=="cone",],
+df %>% 
+  filter(.,type=="cone") %>% 
+  filter(., zone1 != "Wash") %>% droplevels(.) %>% 
+  mutate(value = as.numeric(value)) %>% 
+  filter(., value >= 0) %>% 
+  dplyr::select(.,c(year,shore,type,value,zone1)) %>% 
+  ggplot(.,
        aes(y = as.numeric(value), x = year, fill = zone1))+
+  geom_vline(xintercept = seq(2008,cur.yr,by=1),linetype=2, colour="lightgrey")+
+  geom_hline(yintercept = seq(0,40,by=10),linetype=2, colour="lightgrey")+
   geom_boxplot(aes(group=year),outlier.shape = NA)+
   geom_jitter(width = 0.1, height = 0,alpha=0.3)+
   geom_smooth(method = "loess", colour = "red", span = .9)+
+  # geom_smooth(method = "gam", colour = "red", span = .9)+
   facet_grid(shore~zone1)+
   scale_colour_manual(name = "", values=cbPalette)+
-  scale_fill_manual(name = "", values=cbPaletteFill[c(1:4,8)])+
-  scale_x_continuous(breaks = seq(2008, 2022, by = 2))+
+  scale_fill_manual(name = "", values=cbPaletteFill)+
+  scale_x_continuous(breaks = seq(2008, 2024, by = 4))+
+  scale_y_continuous(limits = c(0, NA), expand = c(0, 0))+
   xlab("Year") + ylab("Cone index")+
   theme(plot.title = element_text(face = "bold"),
         legend.position="none",
@@ -299,7 +311,8 @@ ggplot(data = df_tm[df_tm$type=="cone",],
         strip.text.y = element_text(size = 12),
         strip.text = element_text(face="bold"),
         axis.title = element_text(face="bold"))+
-  labs(title = paste0("Sediment compaction recorded since 2008 as part of the SFGPBM programme"))
+  labs(title = paste0("Sediment compaction recorded since 2008 as part of the SFGPBM programme"),
+       subtitle = "Higher values indicate more compacted sediments")
 dev.off()
 
 ## Statistical comparison ####
