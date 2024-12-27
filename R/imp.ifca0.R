@@ -321,26 +321,26 @@ dev.off()
 ###=============##
 ### ACF PLOTS ####
 ###=============##
-# png(file = "output/figs/ifca.acf.frisk.interp.png",
-#     width=12*ppi, height=6*ppi, res=ppi)
-# par(mfrow = c(2,1))
-# par(mar = c(4, 4, 0.5, 0.2))
-# acf(ad.fr.interp$tonnes,main = "", na.action = na.pass)
-# text(x = 9.25, y = -0.37,"Friskney Adults", adj=0)
-# acf(ju.fr.interp$tonnes,main = "", na.action = na.pass)
-# text(x = 9.25, y = -0.37,"Friskney Juveniles", adj=0)
-# dev.off()
-# 
-# png(file = "output/figs/ifca.acf.wrang.interp.png",
-#     width = 12 * ppi, height = 6 * ppi, res = ppi)
-# par(mfrow = c(2,1))
-# par(mar = c(4, 4, 0.5, 0.2))
-# acf(ad.wr.interp$tonnes,main="", na.action = na.pass)
-# text(x = 9.25, y = -0.37,"Wrangle Adults", adj=0)
-# acf(ju.wr.interp$tonnes,main="", na.action = na.pass)
-# text(x = 9.25, y = -0.37,"Wrangle Juveniles", adj=0)
-# dev.off()
-# 
+png(file = "output/figs/ifca.acf.frisk.interp.png",
+    width=12*ppi, height=6*ppi, res=ppi)
+par(mfrow = c(2,1))
+par(mar = c(4, 4, 0.5, 0.2))
+acf(ad.fr.interp$tonnes,main = "", na.action = na.pass)
+text(x = 9.25, y = -0.37,"Friskney Adults", adj=0)
+acf(ju.fr.interp$tonnes,main = "", na.action = na.pass)
+text(x = 9.25, y = -0.37,"Friskney Juveniles", adj=0)
+dev.off()
+
+png(file = "output/figs/ifca.acf.wrang.interp.png",
+    width = 12 * ppi, height = 6 * ppi, res = ppi)
+par(mfrow = c(2,1))
+par(mar = c(4, 4, 0.5, 0.2))
+acf(ad.wr.interp$tonnes,main="", na.action = na.pass)
+text(x = 9.25, y = -0.37,"Wrangle Adults", adj=0)
+acf(ju.wr.interp$tonnes,main="", na.action = na.pass)
+text(x = 9.25, y = -0.37,"Wrangle Juveniles", adj=0)
+dev.off()
+
 ######################################################
 # FROM HERE ####################
 # Awaiting update on annual nourishment volumes from FCRM/NEAS ###
