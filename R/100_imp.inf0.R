@@ -46,18 +46,13 @@ df <- df0 %>%
   filter(., !str_detect(taxonReported, "fragment")) ###remove fragments of taxa
 
 # sum duplicated taxa ####
-df <- df %>%
+df %>% #names()
   filter(!is.na(count)) %>%
-  group_by(across(c(!count,!taxonReported))) %>% 
-  summarise(.,count=sum(count), .groups = "drop") %>% ungroup()
-
-# keep only 1.0mm mesh, calculate means across replicates and widen data for further analysis ####
-df %>% 
-  filter(., mesh == "1.0mm") %>% ##keep only 1mm mesh
-  ## remove superfluous cols
   dplyr::select(.,
                 -taxonReported,
                 #-units,
+                -zone2.1,-zone2.2,
+                -yr.trn,-yr.trn.sh,-yr.trn.sh.meth,-yr.trn.sh.meth.rep,
                 -Kingdom,
                 -Phylum,
                 -Class,
@@ -67,11 +62,18 @@ df %>%
                 -Species,
                 -Comment
   ) %>% 
+  group_by(across(c(!count)
+                  )) %>% 
+  summarise(.,count=sum(count), .groups = "drop") %>% ungroup() %>% 
+  filter(., mesh == "1.0mm") %>% ##keep only 1mm mesh
+  ## remove superfluous cols
+  
   ### widen and fill gaps with 0:
   pivot_wider(.,
               names_from=taxonUSE,
               values_from=count,
-              values_fill=list(count = 0)) -> dfw
+              values_fill=list(count = 0)
+              ) -> dfw
   # ### re-lengthen for summarising:
   # pivot_longer(.,13:ncol(.),names_to="taxon",values_to="count") %>%names()
   # select(.,
@@ -88,8 +90,8 @@ df %>%
 
 # TIDY UP ####
 # rm(list = ls(pattern = "^df"))
-rm(list = ls(pattern = "^cb"))
-rm(cur.yr,destination_file,file_name,fol,gisfol,perm,ppi,source_file)
+# rm(list = ls(pattern = "^cb"))
+# rm(cur.yr,destination_file,file_name,fol,gisfol,perm,ppi,source_file,projfol)
 
 detach(package:readxl, unload=TRUE)
 detach(package:tidyverse, unload=TRUE)
