@@ -73,7 +73,8 @@ df %>% #names()
               names_from=taxonUSE,
               values_from=count,
               values_fill=list(count = 0)
-              ) -> dfw
+              ) %>% #names(.)
+  relocate(.,AFAUNAL, .after = mesh) -> dfw
   # ### re-lengthen for summarising:
   # pivot_longer(.,13:ncol(.),names_to="taxon",values_to="count") %>%names()
   # select(.,
