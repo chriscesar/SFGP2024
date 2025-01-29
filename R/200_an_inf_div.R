@@ -192,28 +192,31 @@ toc(log=TRUE)
 
 ### summarise across all zones ####
 
-mean(df.cur$S,na.rm = TRUE);sd(df.cur$S,na.rm = TRUE)
+mean(df.cur %>% filter(.,zone1!="Wash") %>% pull(S),na.rm = TRUE)
+sd(df.cur %>% filter(.,zone1!="Wash") %>% pull(S),na.rm = TRUE)
 
 ### summarise means and SD by zone ####
-tmz <- droplevels(dfdiv[dfdiv$transect != "WA1" & dfdiv$mesh=="1.0mm",]) %>%
-  group_by(zone1) %>%
-  summarise(mn.S = mean(S,na.rm = TRUE), sd.S = sd(S, na.rm = TRUE),
-            mn.N = mean(N,na.rm = TRUE), sd.N = sd(N, na.rm = TRUE),
-            mn.simp = mean(simp,na.rm = TRUE), sd.simp = sd(simp, na.rm = TRUE),
-            mn.d = mean(d,na.rm = TRUE), sd.d = sd(d, na.rm = TRUE),
-            mn.H = mean(H,na.rm = TRUE), sd.H = sd(H, na.rm = TRUE),
-            mn.J = mean(J,na.rm = TRUE), sd.J = sd(J, na.rm = TRUE),
-            mn.N1 = mean(N1,na.rm = TRUE), sd.N1 = sd(N1, na.rm = TRUE),
-            mn.biom = mean(biom,na.rm = TRUE), sd.biom = sd(biom, na.rm = TRUE))
+# tmz <- droplevels(dfdiv[dfdiv$transect != "WA1" & dfdiv$mesh=="1.0mm",]) %>%
+#   group_by(zone1) %>%
+#   summarise(mn.S = mean(S,na.rm = TRUE), sd.S = sd(S, na.rm = TRUE),
+#             mn.N = mean(N,na.rm = TRUE), sd.N = sd(N, na.rm = TRUE),
+#             mn.simp = mean(simp,na.rm = TRUE), sd.simp = sd(simp, na.rm = TRUE),
+#             mn.d = mean(d,na.rm = TRUE), sd.d = sd(d, na.rm = TRUE),
+#             mn.H = mean(H,na.rm = TRUE), sd.H = sd(H, na.rm = TRUE),
+#             mn.J = mean(J,na.rm = TRUE), sd.J = sd(J, na.rm = TRUE),
+#             mn.N1 = mean(N1,na.rm = TRUE), sd.N1 = sd(N1, na.rm = TRUE),
+#             mn.biom = mean(biom,na.rm = TRUE), sd.biom = sd(biom, na.rm = TRUE))
 
-dfdivcur <- dfdiv %>% 
+
+dfdivcur <- df_div %>% 
   filter(., mesh == "1.0mm") %>% 
   filter(., year == cur.yr) %>% 
   droplevels(.)
 
 # models ####
 # define "Inside" as ref level
-dfdivcur$zone1 <- relevel(dfdivcur$zone1,ref="Inside")
+dfdivcur$zone1 <- factor(dfdivcur$zone1,
+                         levels=c("Inside","Above","Inside2","Below","Wash"))
 
 ## species richness ####
 anova(mod2 <- lmer(S ~ zone1 + (1|shore),
@@ -227,7 +230,7 @@ visreg::visreg(mod2)
 rm(mod2,d)
 
 ## abundance ####
-mean(dfdivcur$N); sd(dfdivcur$N)
+mean(dfdivcur$Nm2); sd(dfdivcur$Nm2)
 # dfdivcur[which.max(dfdivcur$N),c(2:7,(ncol(dfdivcur)-7):(ncol(dfdivcur)))]##max abund
 # dfdivcur[which.min(dfdivcur$N),c(2:7,(ncol(dfdivcur)-7):(ncol(dfdivcur)))]##min abund]
 
