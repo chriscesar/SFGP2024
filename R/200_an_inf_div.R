@@ -9,7 +9,8 @@ df_biom <- as_tibble(read.csv(paste0(fol,"inf.biom.ts.USE.csv"))) #load biomass 
 df_pre <- as_tibble(read.csv(paste0(fol,"inf_ts_div_pre2007.csv")))
 
 ### load packages
-ld_pkgs <- c("tidyverse", "ggplot2", "vegan", "lmerTest", "patchwork","tictoc")
+ld_pkgs <- c("tidyverse", "ggplot2", "vegan", "lmerTest", "patchwork","tictoc",
+             "emmeans","sjPlot","sjmisc","sjlabelled","stargazer")
 vapply(ld_pkgs, library, logical(1L),
        character.only = TRUE, logical.return = TRUE)
 rm(ld_pkgs)
@@ -138,7 +139,7 @@ df_pre <- df_pre %>% mutate(code = paste(year,transect,shore,mesh,sep = "_")) %>
   relocate(code)
 dfdiv <- bind_rows(df_pre,df_div)
 
-write.csv(dfdiv,file="data/out/inf_div.csv",row.names = FALSE)
+#write.csv(dfdiv,file="data/out/inf_div.csv",row.names = FALSE)
 
 # assign factors
 ## transect
@@ -221,7 +222,17 @@ dfdivcur$zone1 <- factor(dfdivcur$zone1,
 ## species richness ####
 anova(mod2 <- lmer(S ~ zone1 + (1|shore),
                    data=dfdivcur %>% filter(.,zone1!="Wash")))
+# anova(modx <- lm(S ~ shore*zone1 +0,
+#                    data=dfdivcur %>% filter(.,zone1!="Wash")));
+# emmeans(modx, pairwise ~ shore | zone1)
+
+anova(modz <- lm(S ~ shore*zone1,
+                 data=dfdivcur %>% filter(.,zone1!="Wash")))
+emmeans(modz, pairwise ~ shore | zone1)
+
 summary(mod2)
+summary(modx);aov(modx)
+summary(modz);aov(modz)
 
 d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
 d[d$`Pr(>|t|)`<0.051,]
@@ -280,11 +291,30 @@ tic("Current year plots")
 ##reset order of factor levels
 dfdivcur$zone1 <- factor(dfdivcur$zone1, levels = c(
   "Above","Inside","Inside2","Below","Wash"))
+dfdivcur$transect <- factor(dfdivcur$transect,levels=c("T1N","T1", "T1S",
+                               "T4",
+                               "T5","T6",
+                               "T7","T8",
+                               "T9",
+                               "T10",
+                               "T11","T12","T13",
+                               "T14",
+                               "T15","T16","T17",
+                               "T18","T19",
+                               "T20","T21",
+                               "T22","T23",
+                               "T24","T25","T26",
+                               "WA1","WA5","WA6"
+                               ))
+dfdivcur$shore <- factor(dfdivcur$shore, levels = c("Mid","Low"))
+
 ## Current year ####
 ### Spp Rich ####
-S <- ggplot(data = dfdivcur,
-            aes(x = transect, y = S,
-                fill = zone1, color = "black"))+
+S <- ggplot(
+  # data = dfdivcur,
+  data = dfdivcur %>% filter(.,zone1 != "Wash"),
+  aes(x = transect, y = S,
+      fill = zone1, color = "black"))+
   geom_bar(stat = "identity", colour = "black")+
   facet_wrap(~ shore, ncol = 1)+
   theme(legend.position="none",strip.text.x = element_text(size = 12))+
@@ -295,9 +325,11 @@ S <- ggplot(data = dfdivcur,
   labs(subtitle = "Taxon richness")
 
 ### Faunal density ####
-N <- ggplot(data = dfdivcur,
-            aes(x = transect, y = Nm2,
-                fill = zone1, color = "black"))+
+N <- ggplot(
+  # data = dfdivcur,
+  data = dfdivcur %>% filter(.,zone1 != "Wash"),
+  aes(x = transect, y = Nm2,
+      fill = zone1, color = "black"))+
   geom_bar(stat = "identity", colour = "black")+
   facet_wrap(~ shore, ncol = 1)+
   theme(legend.position="none",strip.text.x = element_text(size = 12))+
@@ -308,9 +340,11 @@ N <- ggplot(data = dfdivcur,
   labs(subtitle = "Taxon density")
 
 ### Logged faunal density ####
-lN <- ggplot(data = dfdivcur,
-             aes(x = transect, y = log(Nm2),
-                 fill = zone1, color = "black"))+
+lN <- ggplot(
+  # data = dfdivcur,
+  data = dfdivcur %>% filter(.,zone1 != "Wash"),
+  aes(x = transect, y = log(Nm2),
+      fill = zone1, color = "black"))+
   geom_bar(stat = "identity", colour = "black")+
   facet_wrap(~ shore, ncol = 1)+
   theme(legend.position="none",strip.text.x = element_text(size = 12))+
@@ -321,9 +355,11 @@ lN <- ggplot(data = dfdivcur,
   labs(subtitle = "Taxon density (log)")
 
 ### Faunal Biomass ####
-B <- ggplot(data = dfdivcur,
-            aes(x = transect, y = biom,
-                fill = zone1, color = "black"))+
+B <- ggplot(
+  # data = dfdivcur,
+  data = dfdivcur %>% filter(.,zone1 != "Wash"),
+  aes(x = transect, y = biom,
+      fill = zone1, color = "black"))+
   geom_bar(stat = "identity", colour = "black")+
   facet_wrap(~ shore, ncol = 1)+
   theme(legend.position="none",strip.text.x = element_text(size = 12))+
@@ -334,9 +370,11 @@ B <- ggplot(data = dfdivcur,
   labs(subtitle = "Faunal biomass")
 
 ### Logged faunal Biomass ####
-lB <- ggplot(data = dfdivcur,
-             aes(x = transect, y = log1p(biom),
-                 fill = zone1, color = "black"))+
+lB <- ggplot(
+  # data = dfdivcur,
+  data = dfdivcur %>% filter(.,zone1 != "Wash"),
+  aes(x = transect, y = log1p(biom),
+      fill = zone1, color = "black"))+
   geom_bar(stat = "identity", colour = "black")+
   facet_wrap(~ shore, ncol = 1)+
   theme(legend.position="none",strip.text.x = element_text(size = 12))+
@@ -347,9 +385,11 @@ lB <- ggplot(data = dfdivcur,
   labs(subtitle = "Faunal biomass (log)")
 
 ### shannon ####
-H <- ggplot(data = dfdivcur,
-            aes(x = transect, y = H,
-                fill = zone1, color = "black"))+
+H <- ggplot(
+  # data = dfdivcur,
+  data = dfdivcur %>% filter(.,zone1 != "Wash"),
+  aes(x = transect, y = H,
+      fill = zone1, color = "black"))+
   geom_bar(stat = "identity", colour = "black")+
   facet_wrap(~ shore, ncol = 1)+
   theme(legend.position="none",strip.text.x = element_text(size = 12))+
@@ -360,9 +400,11 @@ H <- ggplot(data = dfdivcur,
   labs(subtitle = expression("Shannon entropy ("~italic("H'")~")"))
 
 ### Pielou ####
-J <- ggplot(data = dfdivcur,
-            aes(x = transect, y = J,
-                fill = zone1, color = "black"))+
+J <- ggplot(
+  # data = dfdivcur,
+  data = dfdivcur %>% filter(.,zone1 != "Wash"),
+  aes(x = transect, y = J,
+      fill = zone1, color = "black"))+
   geom_bar(stat = "identity", colour = "black")+
   facet_wrap(~ shore, ncol = 1)+
   theme(legend.position="none",strip.text.x = element_text(size = 12),
@@ -374,13 +416,16 @@ J <- ggplot(data = dfdivcur,
   labs(subtitle = expression("Pielou's evenness ("~italic("J'")~")"))
 
 ### Margalef ####
-d <- ggplot(data = dfdivcur,
-            aes(x = transect, y = d,
-                fill = zone1, color = "black"))+
+d <- ggplot(
+  # data = dfdivcur,
+  data = dfdivcur %>% filter(.,zone1 != "Wash"),
+  aes(x = transect, y = d,
+      fill = zone1, color = "black"))+
   geom_bar(stat = "identity", colour = "black")+
   facet_wrap(~ shore, ncol = 1)+
   theme(legend.title=element_blank(),legend.direction="horizontal",
-        legend.position = c(.75, 1.3),
+        legend.position = "inside",
+        legend.position.inside = c(.625, 1.4),
         strip.text.x = element_text(size = 12),
         axis.text.x  = element_text(angle=90,
                                     vjust=0.5,
@@ -391,7 +436,7 @@ d <- ggplot(data = dfdivcur,
   scale_fill_manual(values=cbPalette[c(1:4,7)])+
   labs(fill="")+
   labs(subtitle = expression("Margalef's index ("~italic("d")~")"))
-guides(fill=guide_legend(nrow=2, byrow=TRUE))
+#guides(fill=guide_legend(nrow=2, byrow=TRUE))
 
 ### COMBINE plots into single chart
 x <- (lN|lB)/
