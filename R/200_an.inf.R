@@ -53,17 +53,40 @@ df.cur %>%
 #=#=#=#=#=#=#=#=#==
 ### Ordination ####
 #=#=#=#=#=#=#=#=#==
+## remove Wash data from ordination & calculate mean across replicates
+df.cur %>%
+  pivot_longer(.,
+               cols=-c(year,transect,shore,rep,zone1,AFAUNAL,core.area_m2),
+               names_to = "taxon", values_to = "abundance"
+               ) %>% 
+  filter(.,zone1 != "Wash") %>%
+  #convert presence values (-9999) to 1 for ordination
+  mutate(abundance = ifelse(abundance < 0, #replace <0 values with 1
+                            1,
+                            abundance)) %>%
+  ## drop 'reps' and calculate means
+  dplyr::select(.,-rep, -AFAUNAL) %>% 
+  group_by(across(c(!abundance))) %>% 
+  summarise(abundance = mean(abundance), .groups = "drop") %>% #View()
+  filter(.,abundance != 0) %>% 
+  #rewiden
+  pivot_wider(.,names_from = taxon,
+              values_from = abundance,
+              values_fill=list(abundance = 0)) %>% 
+  ungroup() -> df.cur.w.trm
+
 ord.data <- as.data.frame(df.cur.w.trm)
 ##set row names
 row.names(ord.data) <- paste0(df.cur.w.trm$transect,
-                              ".",df.cur.w.trm$shore,
-                              ".",df.cur.w.trm$rep)
+                              ".",df.cur.w.trm$shore#,
+                              #".",df.cur.w.trm$rep
+                              )
 
 tt <- rowSums(ord.data[, -c(1:6)])###remove non-taxon metadata
 use <- tt > 0
 ord.data <- ord.data[use, ] # removed empty rows
 rm(use, tt)
-ord.data.run <- ord.data[,-c(1:6)]
+ord.data.run <- ord.data %>% dplyr::select(.,-c(year,transect,shore,zone1,core.area_m2))#[,-c(1:6)]
 colnames(ord.data.run) <-
   make.cepnames(colnames(ord.data.run)) #shorten names for display
 
@@ -88,7 +111,7 @@ wa <- c("WA1","WA5","WA6")
 data.scores <- as.data.frame(scores(ord)[1])
 names(data.scores) <- c("NMDS1","NMDS2")
 data.scores$transect <- ord.data$transect
-data.scores$shore <- ord.data$shore
+data.scores$shore <- factor(ord.data$shore, levels = c("Mid","Low"))
 data.scores$zone1 <- ifelse(data.scores$transect %in% abv, "Above",
                             ifelse(data.scores$transect %in% ins, "Inside",
                                    ifelse(data.scores$transect %in% ins2, "Inside2",
@@ -122,7 +145,7 @@ p <- ggplot() +
   scale_fill_manual(values = cbPalette) +
   scale_color_manual("Zone", values = cbPalette[c(1:4,7)]) +
   scale_shape_discrete(name = "Shore") +
-  coord_fixed()+
+  # coord_fixed()+
   geom_text_npc(aes(npcx = .99, npcy = .99, label=paste("Stress = ",
                                                         round(ord$stress, 3))))+
   labs(title = paste0("Nonmetric Multidimensional Scaling plot of intertidal infauna recorded in ",cur.yr),
