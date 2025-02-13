@@ -30,6 +30,10 @@ toc(log=TRUE)
 df.cur <- dfw[dfw$year==cur.yr,]
 df.cur <- df.cur[df.cur$mesh=="1.0mm",]
 
+# ### keep 0.5 & 1 mm data from current year
+# df.cur <- dfw_all[dfw_all$year==cur.yr,]
+# #df.cur <- df.cur[df.cur$mesh=="1.0mm",]
+
 df.cur$mesh <- NULL
 
 ### lengthen, remove zeroes and rewiden to retain only recorded taxa
@@ -86,7 +90,9 @@ tt <- rowSums(ord.data[, -c(1:6)])###remove non-taxon metadata
 use <- tt > 0
 ord.data <- ord.data[use, ] # removed empty rows
 rm(use, tt)
-ord.data.run <- ord.data %>% dplyr::select(.,-c(year,transect,shore,zone1,core.area_m2))#[,-c(1:6)]
+ord.data.run <- ord.data %>%
+  dplyr::select(.,-c(year,transect,shore,zone1,core.area_m2)) %>% 
+  dplyr::filter(rownames(.)!= "T8.Mid")
 colnames(ord.data.run) <-
   make.cepnames(colnames(ord.data.run)) #shorten names for display
 
@@ -110,8 +116,9 @@ wa <- c("WA1","WA5","WA6")
 ### MDS plot prep ####
 data.scores <- as.data.frame(scores(ord)[1])
 names(data.scores) <- c("NMDS1","NMDS2")
-data.scores$transect <- ord.data$transect
-data.scores$shore <- factor(ord.data$shore, levels = c("Mid","Low"))
+data.scores$transect <- (ord.data %>% dplyr::filter(rownames(.)!= "T8.Mid"))$transect
+# data.scores$shore <- factor(ord.data$shore, levels = c("Mid","Low"))
+data.scores$shore <- factor((ord.data %>% dplyr::filter(rownames(.)!= "T8.Mid"))$shore, levels=c("Mid","Low"))
 data.scores$zone1 <- ifelse(data.scores$transect %in% abv, "Above",
                             ifelse(data.scores$transect %in% ins, "Inside",
                                    ifelse(data.scores$transect %in% ins2, "Inside2",
@@ -150,13 +157,16 @@ p <- ggplot() +
                                                         round(ord$stress, 3))))+
   labs(title = paste0("Nonmetric Multidimensional Scaling plot of intertidal infauna recorded in ",cur.yr),
        caption=paste0("Based on 0.1m^2 sediment cores sieved over a 1 mm mesh.<br>
-       'Presence-only' taxon scores replaced with values of '1'<br>
-       Data transformation/standardisation: ",as.character(ord$data)))+
-  theme(plot.caption = element_markdown(lineheight = 1.2));p
+       'Presence-only' taxon scores replaced with values of '1'.
+       <br>Mid shore station of transect T8 excluded from ordination."))+
+  theme(plot.caption = element_markdown(lineheight = 1.2),
+        axis.title = element_text(face=2),
+        legend.title = element_text(face=2)
+        );p
 
 ### export mds plot ####
 png(
-  file = "output/figs/inf.MDS.all.24.png",
+  file = "output/figs/inf.MDS.lincs.24.png",
   width = 12 * ppi,
   height = 8 * ppi,
   res = ppi
@@ -167,15 +177,32 @@ dev.off()
 rm(p,ord)
 
 # ANOSIM ####
-anosim_intinf <- anosim(ord.data.run,
-                        grouping = (df.cur %>% filter(.,AFAUNAL > -999))$zone1,permutations=perm)
+# anosim_intinf <- anosim(ord.data.run,
+#                         grouping = (df.cur %>% filter(.,AFAUNAL > -999))$zone1,permutations=perm)
+anosim_intinf <- anosim(ord.data %>%
+                          dplyr::select(.,-c(year,transect,shore,zone1,core.area_m2)),
+                        grouping = ord.data$zone1,
+                        permutations=perm)
+ord.data %>%
+  dplyr::select(.,-c(year,transect,shore,zone1,core.area_m2))
+
 saveRDS(anosim_intinf,file="output/models/intinfAnosim2024.Rdat")
 (anosim_intinf <- readRDS("output/models/intinfAnosim2024.Rdat"))
 summary(anosim_intinf)
 plot(anosim_intinf)
 
 # ADONIS  (Permanova) ####
-ano_intinf <- adonis2(ord.data.run ~ (df.cur %>% filter(., AFAUNAL>-999))$zone1,permutations=perm)
+# ano_intinf <- adonis2(ord.data.run ~ (df.cur %>% filter(., AFAUNAL>-999))$zone1,permutations=perm)
+
+ano_intinf <- adonis2(ord.data %>%
+                        dplyr::select(.,
+                                      -c(year,
+                                         transect,
+                                         shore,
+                                         zone1,
+                                         core.area_m2)) ~ ord.data$zone1,
+                      permutations=perm)
+
 saveRDS(ano_intinf,file="output/models/intinfadonis2024.Rdat")
 (ano_intinf <- readRDS(file="output/models/intinfadonis2024.Rdat"))
 ### is P <0.05?
@@ -189,6 +216,14 @@ write.csv(ano_intinf,
 
 # MVABUND v1 ####
 cur_spp <- mvabund(df.cur.w.trm[,-c(1:7)])
+
+cur_spp <- mvabund::mvabund(ord.data %>%
+                              dplyr::select(.,
+                                            -c(year,
+                                               transect,
+                                               shore,
+                                               zone1,
+                                               core.area_m2)))
 
 # mean-variance plot
 ### this version is based on individual replicates
@@ -216,10 +251,13 @@ mtext(side=3, line = 0.75, at =-0.07, adj=0, cex = 0.7, sbtt)
 dev.off()
 rm(min_value,max_value,min_order,max_order,orders_of_magnitude_covered,ttl,sbtt)
 
-mod1 <- manyglm(cur_spp ~ (df.cur %>% filter(., AFAUNAL > -999))$zone1, family="poisson")
+# mod1 <- manyglm(cur_spp~(df.cur %>% filter(., AFAUNAL > -999))$zone1, family="poisson")
+mod1 <- manyglm(cur_spp ~ ord.data$zone1, family="poisson")
 plot(mod1)
 
-mod2 <- manyglm(cur_spp ~ (df.cur %>% filter(., AFAUNAL > -999))$zone1*(df.cur %>% filter(., AFAUNAL > -999))$shore, family="negative_binomial")
+# mod2 <- manyglm(cur_spp ~ (df.cur %>% filter(., AFAUNAL > -999))$zone1*(df.cur %>% filter(., AFAUNAL > -999))$shore, family="negative_binomial")
+mod2 <- manyglm(cur_spp ~ ord.data$zone1*ord.data$shore,
+                family = "negative_binomial")
 plot(mod2)
 # mod2.summary <- summary(mod2)
 # 
@@ -244,7 +282,10 @@ df.cur.w.trm %>%
                cols = -c(year:core.area_m2),
                names_to = "taxon",
                values_to = "abund") %>% 
-  dplyr::select(.,-c(AFAUNAL,core.area_m2,rep)) %>% 
+  dplyr::select(.,-c(
+    #AFAUNAL,
+    core.area_m2,
+    rep)) %>% 
   group_by(across(c(!abund)
   )) %>% 
   summarise(.,abund=sum(abund), .groups = "drop") %>% ungroup() -> df.mean
