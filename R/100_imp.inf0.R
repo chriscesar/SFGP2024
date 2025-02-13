@@ -65,7 +65,6 @@ df %>% #names()
   group_by(across(c(!count)
                   )) %>% 
   summarise(.,count=sum(count), .groups = "drop") %>% ungroup() %>% 
-  filter(., mesh == "1.0mm") %>% ##keep only 1mm mesh
   ## remove superfluous cols
   
   ### widen and fill gaps with 0:
@@ -74,8 +73,13 @@ df %>% #names()
               values_from=count,
               values_fill=list(count = 0)
               ) %>% #names(.)
-  relocate(.,AFAUNAL, .after = mesh) -> dfw
-  # ### re-lengthen for summarising:
+  relocate(.,AFAUNAL, .after = core.area_m2) -> dfw_all
+  
+dfw_all %>% 
+  filter(., mesh == "1.0mm" ##keep only 1mm mesh
+         ) -> dfw
+
+# ### re-lengthen for summarising:
   # pivot_longer(.,13:ncol(.),names_to="taxon",values_to="count") %>%names()
   # select(.,
   #        -rep,
@@ -93,6 +97,6 @@ df %>% #names()
 # rm(list = ls(pattern = "^df"))
 # rm(list = ls(pattern = "^cb"))
 # rm(cur.yr,destination_file,file_name,fol,gisfol,perm,ppi,source_file,projfol)
-
+rm(destination_file,file_name)
 detach(package:readxl, unload=TRUE)
 detach(package:tidyverse, unload=TRUE)
