@@ -49,7 +49,7 @@ tic("calculate indices");print("calculate indices")
 S <- vegan::specnumber(dfwm2 %>% dplyr::select(.,-c(year,transect,shore,
                                                     zone1,mesh,
                                                     core.area_m2
-)))
+                                                    )))
 
 ## Total individuals (N) ### as density/m2 ####
 ##### NEED TO MODIFY COUNTS BY CORE AREA ####
@@ -137,7 +137,10 @@ df_div <- left_join(df_div,dfb %>% dplyr::select(code,biom),by="code")
 
 ### append pre-2006 data
 df_pre <- df_pre %>% mutate(code = paste(year,transect,shore,mesh,sep = "_")) %>% 
-  relocate(code)
+  relocate(code) %>% 
+  #rename N to Nm2
+  rename(.,Nm2 = N)
+
 dfdiv <- bind_rows(df_pre,df_div)
 
 #write.csv(dfdiv,file="data/out/inf_div.csv",row.names = FALSE)
@@ -193,7 +196,7 @@ df.cur <- dfdiv %>%
 toc(log=TRUE)
 
 ### summarise across all zones ####
-
+tic("Summarise data and produce statistical models")
 mean(df.cur %>% filter(.,zone1!="Wash") %>% pull(S),na.rm = TRUE)
 sd(df.cur %>% filter(.,zone1!="Wash") %>% pull(S),na.rm = TRUE)
 
@@ -208,7 +211,6 @@ sd(df.cur %>% filter(.,zone1!="Wash") %>% pull(S),na.rm = TRUE)
 #             mn.J = mean(J,na.rm = TRUE), sd.J = sd(J, na.rm = TRUE),
 #             mn.N1 = mean(N1,na.rm = TRUE), sd.N1 = sd(N1, na.rm = TRUE),
 #             mn.biom = mean(biom,na.rm = TRUE), sd.biom = sd(biom, na.rm = TRUE))
-
 
 dfdivcur <- df_div %>% 
   filter(., mesh == "1.0mm") %>% 
@@ -317,7 +319,7 @@ stargazer(modzS, modzNm2, modzbiom,modzd,modzJ,modzH,
                             "Shannon entropy"),
           align = TRUE,
           report=('vcsp'))
-
+toc(log=TRUE)
 
 # PLOTS ####
 tic("Current year plots")
@@ -483,6 +485,7 @@ dev.off();
 rm(J,d,lB,B,S,H,lN,N)
 toc(log=TRUE)
 
+tic("Time series plots")
 ## Time series ####
 dfdiv$shore <- factor(dfdiv$shore, levels = c("Mid","Low"))
 dfdiv$zone1 <- factor(dfdiv$zone1,levels = c("Above","Inside","Inside2","Below","Wash"))
@@ -496,20 +499,20 @@ N <- ggplot(data = dfts, aes(y = log(Nm2+1), x = year, fill = zone1)) +
   geom_hline(yintercept = min(log(dfts$N+1),na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_hline(yintercept = max(log(dfts$N+1),na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_boxplot(aes(group=year))+
-  # geom_smooth(method = "loess", colour = "red", span = .9)+
-  geom_smooth(method = "gam", colour = "red", span = .9)+
+  geom_smooth(method = "loess", colour = "red", span = .9)+
+  #geom_smooth(method = "gam", colour = "red", span = .9)+
   facet_grid(shore~zone1)+
   scale_colour_manual(name = "", values=cbPalette)+
   scale_fill_manual(name = "", values=cbPalette)+
   xlab("Year") + ylab(bquote("Log faunal density"))+
-  scale_x_continuous(breaks = seq(1996, 2024, by = 2))+
+  scale_x_continuous(breaks = seq(1996, 2024, by = 4))+
   coord_cartesian(ylim=c(0,NA))+
   theme(legend.position="none",
         strip.text.x = element_text(size = 12),
         strip.text.y = element_text(size = 12),
         axis.text.x = element_text(angle = 270,hjust=1,vjust=0.5))
 
-png(file = "output/figs/inf.ts.logN.1996_gam.png",
+png(file = "output/figs/inf.ts.logN.1996_loess.png",
     width=12*ppi, height=6*ppi, res=ppi)
 # png(file = "output/figs/inf.ts.logN.1996_loess.png",
 #     width=12*ppi, height=6*ppi, res=ppi)
@@ -528,7 +531,7 @@ S <- ggplot(data = dfts, aes(y = S, x = year, fill = zone1))+
   facet_grid(shore~zone1)+
   scale_colour_manual(name = "", values=cbPalette)+
   scale_fill_manual(name = "", values=cbPalette)+
-  scale_x_continuous(breaks = seq(1996, 2024, by = 2))+
+  scale_x_continuous(breaks = seq(1996, 2024, by = 4))+
   xlab("Year") + ylab(bquote("Taxon richness"))+
   theme(legend.position="none",
         strip.text.x = element_text(size = 12),
@@ -550,8 +553,8 @@ H <- ggplot(data = dfts, aes(y = H, x = year, fill = zone1))+
   geom_hline(yintercept = min(dfts$H,na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_hline(yintercept = max(dfts$H,na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_boxplot(aes(group=year))+
-  # geom_smooth(method = "loess", colour = "red", span = .9)+
-  geom_smooth(method = "gam", colour = "red", span = .9)+
+  geom_smooth(method = "loess", colour = "red", span = .9)+
+  #geom_smooth(method = "gam", colour = "red", span = .9)+
   facet_grid(shore~zone1)+
   scale_colour_manual(name = "", values=cbPalette)+
   scale_fill_manual(name = "", values=cbPalette)+
@@ -560,13 +563,13 @@ H <- ggplot(data = dfts, aes(y = H, x = year, fill = zone1))+
         strip.text.x = element_text(size = 12),
         strip.text.y = element_text(size = 12),
         axis.text.x = element_text(angle = 270,hjust=1,vjust=0.5))+
-  scale_x_continuous(breaks = seq(2007, 2024, by = 2))+
+  scale_x_continuous(breaks = seq(1996, 2024, by = 4))+
   coord_cartesian(ylim=c(0,NA))
 
-# png(file = "output/figs/inf.ts.H.1996_loess.png",
-# width=12*ppi, height=6*ppi, res=ppi)
-png(file = "output/figs/inf.ts.H.1996_gam.png",
-    width=12*ppi, height=6*ppi, res=ppi)
+png(file = "output/figs/inf.ts.H.1996_loess.png",
+width=12*ppi, height=6*ppi, res=ppi)
+# png(file = "output/figs/inf.ts.H.1996_gam.png",
+#     width=12*ppi, height=6*ppi, res=ppi)
 print(H);
 dev.off();
 rm(H)
@@ -587,7 +590,7 @@ J <- ggplot(data = dfts, aes(y = J, x = year, fill = zone1))+
         strip.text.x = element_text(size = 12),
         strip.text.y = element_text(size = 12),
         axis.text.x = element_text(angle = 270,hjust=1,vjust=0.5))+
-  scale_x_continuous(breaks = seq(2007, 2023, by = 2))+
+  scale_x_continuous(breaks = seq(1996, 2024, by = 4))+
   coord_cartesian(ylim=c(0,NA))
 
 # png(file = "output/figs/inf.ts.J.1996_loess.png",
@@ -638,7 +641,8 @@ d <- ggplot(data = dfts, aes(y = log(biom+1), x = year, fill = zone1))+
   scale_colour_manual(name = "", values=cbPalette)+
   scale_fill_manual(name = "", values=cbPalette)+
   xlab("Year") + ylab(bquote("log(Biomass)"))+
-  scale_x_continuous(breaks = seq(2007, 2023, by = 2))+
+  scale_x_continuous(breaks = seq(1996, 2024, by = 4))+
+  coord_cartesian(ylim=c(0,NA))+
   theme(legend.position="none",
         strip.text.x = element_text(size = 12),
         strip.text.y = element_text(size = 12),
@@ -682,8 +686,12 @@ write.csv(df_biom_w,file="output/dfw_biomass.csv")
 
 ## Tidy up ####
 rm(list = ls(pattern = "^df"))
-rm(cbPalette,cbPaletteTxt, ppi,tmz,perm,cur.yr,x,
-   fol,gisfol)
+rm(list=ls(pattern = "^anov"))
+rm(list=ls(pattern = "^mod"))
+rm(list=ls(pattern = "^cbP"))
+rm(ppi, tmz, perm, cur.yr, x, projfol, source_file, sum_zero, fol, gisfol)
+toc(log=TRUE)
+unlist(tictoc::tic.log())
 
 detach("package:tidyverse", unload=TRUE)
 detach("package:lmerTest", unload=TRUE)
