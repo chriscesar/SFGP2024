@@ -11,7 +11,7 @@ df_pre <- as_tibble(read.csv(paste0(fol,"inf_ts_div_pre2007.csv")))
 
 ### load packages
 ld_pkgs <- c("tidyverse", "ggplot2", "vegan", "lmerTest", "patchwork","tictoc",
-             "emmeans","sjPlot","sjmisc","sjlabelled","stargazer")
+             "emmeans","sjPlot","sjmisc","sjlabelled","stargazer","ggridges")
 vapply(ld_pkgs, library, logical(1L),
        character.only = TRUE, logical.return = TRUE)
 rm(ld_pkgs)
@@ -683,6 +683,56 @@ df_biom_w <- df_biom_w %>%
   pivot_wider(.,names_from = yr.trn.sh.meth,values_from = mb)
 
 write.csv(df_biom_w,file="output/dfw_biomass.csv")
+
+#development: better ways to display trends ####
+
+ggplot(data = dfts, aes(x = log(Nm2+1), y = as.factor(year),
+                        height = log(Nm2+1),
+                        fill = zone1)) +
+  facet_grid(shore ~ zone1)+
+  geom_density_ridges(stat="identity",#scale=1.4,alpha=0.7,
+                      aes(fill=zone1),
+                      show.legend = FALSE)+
+  scale_y_discrete(limits=rev)
+  
+  
+  ggplot(data = .,
+         aes(x = phi, y=as.factor(year), height = perc))+
+  facet_grid(shore ~ zone1)+
+  geom_density_ridges(stat="identity",#scale=1.4,alpha=0.7,
+                      aes(fill=zone1),
+                      show.legend = FALSE)+
+  scale_y_discrete(limits=rev)+
+  scale_fill_manual(values=cbPalette)+
+  xlim(-5,9)+
+  labs(x="Phi",y="Year",
+       title = "Distribution of sediment grain sizes since 2011 within different beach nourishment zones on the Lincolnshire coast",
+       subtitle="Sandy sediments characterise most of the monitoring zone. Coarser sediments (i.e., smaller phi values) dominate Inside the beach nourishment zone.\nThis difference is largely confined to the upper and mid shore sites which receive the majority of nourishment material",
+       caption = "Background panel shading indicates broad sediment categories: Gravel (phi <0), Sand (phi 0-4, Silt (phi >4).")+
+  theme(strip.text = element_text(size = 14, face="bold"))
+
+
+
+
+
++
+  geom_hline(yintercept = mean(log(dfts$N+1),na.rm = TRUE),colour="grey",linetype="dashed")+
+  geom_hline(yintercept = min(log(dfts$N+1),na.rm = TRUE),colour="grey",linetype="dotted")+
+  geom_hline(yintercept = max(log(dfts$N+1),na.rm = TRUE),colour="grey",linetype="dotted")+
+  geom_boxplot(aes(group=year))+
+  geom_smooth(method = "loess", colour = "red", span = .9)+
+  #geom_smooth(method = "gam", colour = "red", span = .9)+
+  facet_grid(shore~zone1)+
+  scale_colour_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPalette)+
+  xlab("Year") + ylab(bquote("Log faunal density"))+
+  scale_x_continuous(breaks = seq(1996, 2024, by = 4))+
+  coord_cartesian(ylim=c(0,NA))+
+  theme(legend.position="none",
+        strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(angle = 270,hjust=1,vjust=0.5))
+
 
 ## Tidy up ####
 rm(list = ls(pattern = "^df"))

@@ -186,6 +186,7 @@ png(file = "output/figs/epi.cra.abnd.ts.png",
 dfw %>% 
   filter(.,year<cur.yr) %>%
   ggplot(.,aes(x=date,
+               #y=Crangon_all))+
                y=log(Crangon_all+1)))+
   geom_point()+
   facet_grid(depth~zone1)+
