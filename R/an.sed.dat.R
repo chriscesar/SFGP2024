@@ -2,7 +2,7 @@
 
 # Set up ####
 ### load packages ####
-ld_pkgs <- c("tidyverse","readxl","tictoc","ggridges")
+ld_pkgs <- c("tidyverse","readxl","tictoc","ggridges","lme4","lmerTest")
 vapply(ld_pkgs, library, logical(1L),
        character.only = TRUE, logical.return = TRUE)
 rm(ld_pkgs)
@@ -85,9 +85,9 @@ df_pl %>%
        subtitle="Sandy sediments characterise most of the monitoring zone. Coarser sediments (i.e., smaller phi values) dominate Inside the beach nourishment zone.\nThis difference is largely confined to the upper and mid shore sites which receive the majority of nourishment material",
        caption = "Background panel shading indicates broad sediment categories: Gravel (phi <0), Sand (phi 0-4, Silt (phi >4).")+
   theme(strip.text = element_text(size = 14, face="bold")) -> pl
-png("output/figs/sed.ts.psahires.png", width=14,height = 14,units = "in",res=ppi)
+png("output/figs/sed.ts.psahires2.png", width=14,height = 14,units = "in",res=ppi)
 print(pl)
-dev.off()
+dev.off();rm(pl)
 
 # prep data for Gradistat ####
 ## create mm and um values from phi
@@ -115,6 +115,125 @@ df_grad_all %>%
   # dplyr::filter(n > 1L) -> x
 
 write.csv(df_cur, file="data/Gradistat/sample.data.csv",row.names = FALSE)
+
+# compare values between zones for the current year####
+# df0 <- openxlsx::read.xlsx(paste0(fol,"sed.psa.bulkWIP_use.xlsx"),sheet="sed.bulk.ts.out")
+### keep only 5cm cores & current year
+df_sed_bulk %>% 
+  filter(.,year==cur.yr) %>% 
+  filter(.,method=="5cm") %>% 
+  droplevels(.) -> df
+
+### define function for standard error
+se <- function(x) sqrt(var(x)/length(x))
+
+# plot Hi Res grainsize distribn ####
+df_psa %>% 
+  filter(., year == cur.yr) %>% 
+  ggplot(.,
+         aes(x = phi, y = MEAS_RESULT,group=Transect))+
+  geom_rect(aes(xmin = -Inf,xmax = 0,ymin = -Inf,ymax = Inf),fill="grey",alpha=0.01)+
+  geom_rect(aes(xmin = 0,xmax = 4,ymin = -Inf,ymax = Inf),fill="yellow",alpha=0.0025)+
+  geom_rect(aes(xmin = 4,xmax = Inf,ymin = -Inf,ymax = Inf),fill="sienna",alpha=0.0025)+
+  geom_vline(xintercept = c(0,4), colour="darkgrey",lty=2)+
+  geom_line(aes(group=Transect,colour=zone1),size = 1.25)+
+  ylab ("Percentage contribution")+
+  geom_point(aes(group=Transect,shape=zone1,fill=zone1),size=3)+
+  scale_shape_manual(values = c(21:24)) +#tell R which symbols to use
+  theme(legend.position=c(0.5,0.5),
+        legend.direction = "horizontal",
+        legend.title = element_blank(),
+        axis.text = element_text(size = 11),
+        strip.text.x = element_text(size = 12),
+        legend.background=element_rect(fill=alpha("white",0.1))
+  )+
+  facet_wrap(~ Shore, ncol = 2)+
+  scale_colour_manual(values=cbPalette)+
+  scale_fill_manual(values=cbPalette)+
+  #xlim(NA,10)+
+  scale_x_continuous(breaks = seq(-6, 10, by = 2))+
+  labs(title=paste0("Sediment grain size distributions ",cur.yr),
+       caption = "Background panel shading indicates broad sediment categories: Gravel (phi <0), Sand (phi 0-4, Silt (phi >4)."
+  )+
+  theme(
+    plot.title = element_text(face=2),
+    strip.text = element_text(face=2),
+    axis.title = element_text(face=2)
+  ) -> pl
+png("output/figs/sed.cur.psahires.png", width=12,height = 8,units = "in",res=ppi)
+print(pl)
+dev.off()
+
+#### Mean phi ####
+# phi.mod <- aov(mean.phi ~ zone1*shore, data = df0);
+# phi.mean <- aggregate(df$MEAN_folkWard_phi~df$zone1, FUN=mean)
+# phi.se <- aggregate(df$MEAN_folkWard_phi~df$zone1, FUN=se)
+# phi.mean.s <- aggregate(df$MEAN_folkWard_phi~df$shore, FUN=mean)
+# phi.se.s <- aggregate(df$MEAN_folkWard_phi~df$shore, FUN=se)
+# phi.mean.sz <- aggregate(df$MEAN_folkWard_phi~df$shore*df$zone1, FUN=mean)
+# phi.se.sz <- aggregate(df$MEAN_folkWard_phi~df$shore*df$zone1, FUN=se)
+
+range(df$MEAN_folkWard_phi) # as phi
+range(df$MEAN_folkWard_um/1000) # as mm
+df[c(which.min(df$MEAN_folkWard_phi),
+     which.max(df$MEAN_folkWard_phi)),] %>% 
+  dplyr::select(.,year:zone1,MEAN_folkWard_phi)
+
+# phi.mean;phi.se
+# phi.mean.s;phi.se.s
+# tm <- phi.mean.sz[,c(1:3)]
+# tm <- cbind(tm,phi.se.sz$`df$MEAN_folkWard_phi`) ## breaks?!
+
+# MODELS! ####
+## shore ####
+anova(mod2 <- lmer(MEAN_folkWard_phi ~ shore + (1|zone1) , data = df,REML=TRUE))
+#summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+## zones ####
+anova(mod2 <- lmer(MEAN_folkWard_phi ~ zone1 + (1|shore) , data = df,REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+## D10 ####
+anova(mod2 <- lmer(D10_phi ~ zone1 + (1|shore) , data = df,REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+## D50 ####
+anova(mod2 <- lmer(D50_phi ~ zone1 + (1|shore) , data = df,REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+## D90 ####
+anova(mod2 <- lmer(D90_phi ~ zone1 + (1|shore) , data = df,REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+##########################################################################
+#### TO DO: SORTING, KURTOSIS, etc. ######################################
+##########################################################################
+
 
 # tidy up ####
 rm(list=ls(pattern = "^df"))
