@@ -107,6 +107,44 @@ toc(log=TRUE)
 
 unlist(tictoc::tic.log())
 
+# DEVT: Visualisation of trends ####
+df$shore <- factor(df$shore, levels =c("Mid","Low"))
+df$zone1 <- factor(df$zone1,levels = c("Above","Inside","Inside2","Below","Wash"))
+df %>% 
+  ## remove presence-only
+  filter(.,count>0) %>% 
+  # remove Wash samples
+  filter(., zone1 !="Wash") %>% #names()
+  filter(., mesh=="1.0mm") %>% 
+  ## drop cols, calculate means, widen, add zeroes, lengthen
+  dplyr::select(.,year,transect, shore, zone1, mesh,taxonUSE, count) %>%
+  group_by(across(!count)) %>% 
+  summarise(count = mean(count)) %>% 
+  pivot_wider(.,names_from = taxonUSE, values_from = count,values_fill = 0) %>% 
+  pivot_longer(.,cols=-c(year,transect,shore,zone1,mesh),
+               names_to = "Taxon", values_to = "Count"
+              ) %>%
+  ggplot(., aes(y = log(Count+1), x = as.factor(year),
+                colour=zone1))+
+  facet_grid(shore~zone1)+
+  geom_smooth(method="loess", 
+              #aes(group=taxonUSE),
+              se=FALSE,alpha=0.8)+
+  scale_x_discrete(limits=rev)+
+  geom_point(aes(group=Taxon),alpha=0.5,
+             position=position_jitter(width = .25,height=0.05),
+             show.legend = FALSE)+
+  coord_flip()+
+  scale_colour_manual(values = cbPalette)+
+  #coord_fixed(ylim(0,NA))+
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_text(face=2),
+        axis.text = element_text(face=2),
+        strip.text = element_text(face=2),
+        legend.position = "none")
+  
+  
+
 # tidy up ####
 rm(list=ls(pattern = "^df"));rm(list=ls(pattern = "^m"))
 rm(list=ls(pattern = "^ano"));rm(list=ls(pattern = "^cb"))
