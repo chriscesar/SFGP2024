@@ -36,6 +36,14 @@ df_sed$zone1 <- ifelse(
 
 df_sed$zone1 <- factor(df_sed$zone1, levels = c("Above","Inside","Inside2","Below","Wash"))
 df_sed$Shore <- factor(df_sed$Shore, levels = c("Upper","Mid","Low","Surf"))
+df_sed$Transect <- factor(df_sed$Transect,
+                          levels = c(
+                            "T1N", "T1","T1S",
+                            "T4","T7", "T8", "T11", "T12",
+                            "T13",
+                            "T15", "T21", "T22", "T23","T24", "T25","T26",
+                            "WA1"
+                          ))
 
 # load and append older data ####
 df_sed_old <- read.csv(file = paste0(fol,"sed.psa.hi.ts.csv"))
