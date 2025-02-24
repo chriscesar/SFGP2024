@@ -230,12 +230,72 @@ d[d$`Pr(>|t|)`<0.051,]
 visreg::visreg(mod2)
 rm(mod2,d)
 
-##########################################################################
-#### TO DO: SORTING, KURTOSIS, etc. ######################################
-##########################################################################
+## SORTING ####
+anova(mod2 <- lmer(SORTING_folkWard_phi ~ zone1 + (1|shore) , data = df,REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+## SKEW ####
+## range
+df[which.min(df$SKEWNESS_folkWard_phi),]
+df[which.max(df$SKEWNESS_folkWard_phi),]
+anova(mod2 <- lmer(SKEWNESS_folkWard_phi ~ zone1 + (1|shore) , data = df,REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+## KURTOSIS ####
+## range
+df[which.min(df$KURTOSIS_folkWard_phi),];min(df$KURTOSIS_folkWard_phi)
+df[which.max(df$KURTOSIS_folkWard_phi),];max(df$KURTOSIS_folkWard_phi)
+anova(mod2 <- lmer(KURTOSIS_folkWard_phi ~ zone1 + (1|shore) , data = df,REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+## CaCO3 ####
+anova(mod2 <- lmer(MEAS_RESULT ~ zone1 + (1|Shore),
+                   data = df_sed %>% filter(.,DetUse == "CaCO3_dw_perc") %>% 
+                     filter(.,year==cur.yr),
+                   REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
+
+## Silicate ####
+anova(mod2 <- lmer(MEAS_RESULT ~ zone1 + (1|Shore),
+                   data = df_sed %>% filter(.,DetUse == "Silicates_perc") %>% 
+                     filter(.,year==cur.yr),
+                   REML=TRUE))
+summary(mod2)
+d <- as.data.frame(ls_means(mod2, test.effs = "Group",pairwise = TRUE))
+d[d$`Pr(>|t|)`<0.051,]
+# sjPlot::plot_model(mod2,show.values=TRUE, show.p=TRUE)
+visreg::visreg(mod2)
+rm(mod2,d)
 
 
 # tidy up ####
 rm(list=ls(pattern = "^df"))
 rm(list=ls(pattern = "^cb"))
 rm(sum_zero,cur.yr,fol,gisfol,perm,ppi,projfol)
+
+detach("package:tidyverse", unload = TRUE)
+detach("package:lmerTest", unload = TRUE)
+detach("package:lme4", unload = TRUE)
+detach("package:readxl", unload = TRUE)
+detach("package:ggridges", unload = TRUE)
+detach("package:tictoc", unload = TRUE)
