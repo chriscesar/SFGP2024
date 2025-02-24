@@ -397,8 +397,11 @@ View(df[order(-df$MEAN_folkWard_phi),c(1:10,31)])
 
 df %>% 
   filter(.,method=="5cm") %>% 
-  dplyr::select(.,shore,zone1,MEAN_log_phi,SORTING_log_phi,SKEWNESS_log_phi,
-                KURTOSIS_log_phi,D10_phi,D50_phi,D90_phi) %>% 
+  # dplyr::select(.,shore,zone1,MEAN_log_phi,SORTING_log_phi,SKEWNESS_log_phi,
+  #               KURTOSIS_log_phi,D10_phi,D50_phi,D90_phi) %>%
+  dplyr::select(.,shore,zone1,MEAN_folkWard_phi,SORTING_folkWard_phi,
+                SKEWNESS_folkWard_phi,
+                KURTOSIS_folkWard_phi,D10_phi,D50_phi,D90_phi) %>% 
   group_by(shore,zone1) %>% 
   summarize(across(everything(), 
                    list(mean = ~mean(.x, na.rm = TRUE), 
