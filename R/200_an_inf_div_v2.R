@@ -223,6 +223,15 @@ dfdivcur$zone1 <- factor(dfdivcur$zone1,
                          levels=c("Inside","Above","Inside2","Below","Wash"))
 
 ## species richness ####
+anova(modS_shore <- lm(S ~ shore,
+                       data=dfdivcur %>% filter(.,zone1!="Wash")))
+summary(modS_shore)
+
+anova(modS_zone <- lm(S ~ zone1,
+                       data=dfdivcur %>% filter(.,zone1!="Wash")))
+summary(modS_shore)
+
+# zone * shore
 anova(modzS <- lm(S ~ zone1*shore,
                  data=dfdivcur %>% filter(.,zone1!="Wash")))
 list(
