@@ -437,16 +437,23 @@ toc(log=TRUE)
 
 # PLOT ####
 nums <- ncol(dat)
+dfcur$mon <- factor(dfcur$mon, levels = c("Sep","Oct"))
 
 png(file = "output/figs/epi.current.yr.png",
-    width=10*ppi, height=16*ppi, res=ppi)
+    width=8*ppi, height=14*ppi, res=ppi)
 dfcur %>% 
+  rename_with(~ vegan::make.cepnames(.), -c(year, transect, zone1,zone1mod,
+                                            depth,mon, N, S)) %>% 
   pivot_longer(cols = -c(year,transect,zone1,zone1mod, depth, mon, N, S), 
                names_to = "Taxon", 
-               values_to = "Abundance") %>% 
+               values_to = "Abundance") %>%
+  ## remove <0 values
+  filter(., Abundance >0) %>% 
+  # mutate(.,Taxon_lb = vegan::make.cepnames(Taxon)) %>% 
   mutate(Abundance = if_else(Abundance < 0, 1, Abundance)) %>% #View()
   filter(.,Abundance != 0) %>% #View()
   ggplot(aes(
+    # y = Taxon_lb,
     y = Taxon,
     x = log(Abundance + 1),
     # x = Mean_abundance,
@@ -458,24 +465,28 @@ dfcur %>%
              alpha=0.5,size=2,
              aes(
                #shape = zoneplot,
-               col = zone1,
+               fill = zone1,
+               colour=mon,
                group = zone1,
                shape=depth
                ),
              show.legend = FALSE) +
   facet_grid(.~zone1)+
   scale_y_discrete(limits=rev)+
-  scale_color_manual(values=cbPaletteTxt)+
+  scale_shape_manual(values=c(21,22,23))+
+  scale_colour_manual(values=c(1,2))+
+  scale_fill_manual(values=cbPaletteTxt)+
   labs(
-    title = "Abundances of taxa in epifaunal assembalges monitored as part of the 2024 SGPBM",
+    title = "Abundances of taxa in epifaunal assembalges monitored as part of the\n2024 SGPBM",
     y="",
-    x="log mean abundance (n+1)"
+    x="log mean abundance (n+1)",
+    caption = "Taxa recorded as presence-only excluded"
   )+
   theme(
     strip.text = element_text(face=2,size = 12),
     axis.title.y = element_blank(),
     axis.title.x = element_text(face=2),
-    axis.text.y = element_text(size=4)
+    axis.text.y = element_text(size=9)
   )
 dev.off()
 
