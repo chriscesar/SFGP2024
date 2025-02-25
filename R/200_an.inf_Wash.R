@@ -81,7 +81,8 @@ minyr <- min(dfwash_mean$year)
 dfwash_mean <- dfwash_mean %>% filter(Abundance!=0)
 
 dfwash_mean <- bind_rows(dfwash_mean,tibble(year=c(2020,2022,2023),
-                                            shore=c("Low","Low","Mid")))
+                                            shore=c("Low","Low","Mid"),
+                                            Taxon_lab=c("Ceraedul","Ceraedul","Ceraedul")))
 
 dfwash_mean$shore <- factor(dfwash_mean$shore, levels=c("Mid","Low"))
 
@@ -97,26 +98,28 @@ pl <- dfwash_mean %>%
   geom_point(aes(size = log(Abundance+1),
                  colour = log(Abundance+1)),show.legend = FALSE)+
   facet_wrap(.~shore)+
-  scale_y_discrete(limits=rev)+
+  #scale_y_discrete(limits=rev)+
+  scale_x_discrete(limits=rev)+
   labs(title = paste0(
     "Abundances of taxa recorded in transects in The Wash since ",
     minyr),
     subtitle = "Point colours and sizes indicate the relative abundances of different taxa",
-    caption = "Taxon names abbreviated using the vegan::makecepnames() function in R.")+
+    caption = "Taxon names abbreviated using the vegan::makecepnames() function in R.
+    Note that the 2024 data include taxa gathered across three transects. Previous data gathered across a single transect")+
   theme(
     axis.text.x = element_text(
-      angle = 90,
-      face=2,
-      hjust = 1,
-      vjust=.5
+      #angle = 90,
+      face=2#,
+      # hjust = 1,
+      # vjust=.5
       ),
     axis.text.y = element_text(face=2),
     plot.title = element_text(face=2),
     strip.text = element_text(face=2),
     axis.title = element_blank()
-  )#+
+  )+
   coord_flip()
-ggsave(plot = pl, filename = "output/figs/WashTaxa1.png",
+ggsave(plot = pl, filename = "output/figs/WashTaxa2.png",
          width = 16,height = 8,units = "in");rm(pl)
 
 # tidy up ####
