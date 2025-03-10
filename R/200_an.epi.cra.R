@@ -65,8 +65,15 @@ dfwcur$zone1 <- factor(dfwcur$zone1, levels = c("Inside","Above","Inside2","Belo
 
 dfwcur %>% 
   dplyr::select(.,c(1:5,Crangon_all)) %>% 
-  filter(.,mon=="Oct") %>% 
+  #filter(.,mon=="Oct") %>% 
   View(.)
+
+# compare months
+dfwcur %>% 
+  dplyr::select(.,c(1:5,Crangon_all)) %>% 
+  group_by(mon) %>% 
+  summarise(meanCran = mean(Crangon_all),
+            sdCran = sd(Crangon_all))
 
 # View(dfwcur[,c(1:5, ncol(dfwcur))])
 plot(performance::check_distribution(dfwcur$Crangon_all)) # NegBin
@@ -78,7 +85,7 @@ plot(performance::check_distribution(dfwcur$Crangon_all)) # NegBin
 # performance::check_model(mod01)
 
 car::Anova(mod02<-glmer.nb(Crangon_all ~ zone1 +
-                             # (1|depth) +
+                             (1|depth) +
                              (1|mon)
                            ,
                            data=dfwcur))
