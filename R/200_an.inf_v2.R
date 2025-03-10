@@ -54,10 +54,32 @@ m1 <- mvabund::manyglm(mvabund::mvabund(df.tx)~df.cur$zone_model,
 m1.summary <- summary(m1, nBoot = 9999)
 anova_m1 <- mvabund::anova.manyglm(m1,p.uni = "adjusted")
 
-m2 <- mvabund::manyglm(mvabund::mvabund(df.tx)~df.cur$zone_model*df.cur$shore,family = "negative.binomial")
+m2 <- mvabund::manyglm(mvabund::mvabund(df.tx)~df.cur$zone_model*df.cur$shore,
+                       family = "negative.binomial")
 m2.summary <- summary(m2, nBoot = 9999)
 anova_m2 <- mvabund::anova.manyglm(m2,p.uni = "adjusted")
+# pairwise comparisons
+#anova_pw_m2 <- anova.manyglm(m2, pairwise.comp = df.cur$zone_model*df.cur$shore)
+#Create an Interaction Factor
+df.cur$zone_shore <- interaction(df.cur$zone_model, df.cur$shore)
+anova_pw_m2 <- anova.manyglm(m2, pairwise.comp = df.cur$zone_shore)
+
+
 toc(log=TRUE)
+
+## expt: include shore as random effect ####
+# Use geepack::geeglm() to specify a correlation structure for shore
+# The idea is to account for the repeated measures within shore, treating
+# it as a random effect.
+# Fit the model using the manyglm() function
+# Convert species abundance data into mvabund object
+abundance_data <- mvabund(df.cur %>% dplyr::select(.,-c(year,transect,shore,,
+                                                        zone1,mesh,core.area_m2,
+                                                        zone_model,zoneplot)))
+# Fit manyglm with GEE correlation structure for shore
+mod01 <- manyglm(abundance_data ~ zone1, data = df.cur, family = "negative.binomial",
+               corStr = corCompSymm(form = ~ 1 | shore))  # Compound symmetry for repeated measures
+summary(mod01)
 
 # PLOT ####
 tic("Plot")
