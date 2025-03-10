@@ -243,6 +243,13 @@ list(
 summary(modzS);aov(modzS)
 
 # sjPlot::plot_model(modzS,show.values=TRUE, show.p=TRUE)
+# as mixed model
+modS_lmer <- lmerTest::lmer(S ~ zone1 + (1|shore),
+                            data=dfdivcur %>% filter(.,zone1!="Wash"))
+sjPlot::plot_model(modS_lmer, show.values = TRUE, show.p = TRUE,
+                   show.intercept = TRUE,
+                   title = "Effect of nourishment zone on taxon richness (S)")
+sjPlot::tab_model(modS_lmer)
 
 ## abundance ####
 anova(modzNm2 <- lm(Nm2 ~ zone1*shore,
@@ -252,9 +259,18 @@ list(
   shore = emmeans(modzNm2, pairwise ~shore), #main effect of shore
   interaction = emmeans(modzNm2, pairwise ~ zone1 | shore)
 )
-
+summary(modS_lmer)
 # summary(modzNm2);aov(modzNm2)
 # sjPlot::plot_model(modzNm2,show.values=TRUE, show.p=TRUE)
+
+# as mixed model
+modNm2_lmer <- lmerTest::lmer(Nm2 ~ zone1 + (1|shore),
+                            data=dfdivcur %>% filter(.,zone1!="Wash"))
+sjPlot::plot_model(modNm2_lmer, show.values = TRUE, show.p = TRUE,
+                   show.intercept = TRUE,
+                   title = "Effect of nourishment zone on faunal abundance (N)")
+sjPlot::tab_model(modNm2_lmer)
+summary(modNm2_lmer)
 
 ## biomass ####
 mean(dfdivcur$biom); sd(dfdivcur$biom)
@@ -272,6 +288,15 @@ list(
 summary(modzbiom);aov(modzbiom)
 # sjPlot::plot_model(modzbiom,show.values=TRUE, show.p=TRUE)
 
+# as mixed model
+modzbiom_lmer <- lmerTest::lmer(biom ~ zone1 + (1|shore),
+                              data=dfdivcur %>% filter(.,zone1!="Wash"))
+sjPlot::plot_model(modzbiom_lmer, show.values = TRUE, show.p = TRUE,
+                   show.intercept = TRUE,
+                   title = "Effect of nourishment zone on faunal biomass")
+sjPlot::tab_model(modzbiom_lmer)
+summary(modzbiom_lmer)
+
 ## Margalef ####
 anova(modzd <- lm(d ~ zone1*shore,
                   data=dfdivcur %>% filter(.,zone1 != "Wash") %>% 
@@ -286,6 +311,18 @@ list(
 summary(modzd);aov(modzd)
 # sjPlot::plot_model(modzd,show.values=TRUE, show.p=TRUE)
 
+# as mixed model
+# can't model when d = -Inf.  Replace -Inf with -10
+dfdivcur$d_prox <- dfdivcur$d
+dfdivcur$d_prox[is.infinite(dfdivcur$d_prox)] <- -10
+modzd_lmer <- lmerTest::lmer(d_prox ~ zone1 + (1|shore),
+                                data=dfdivcur %>% filter(.,zone1!="Wash"))
+sjPlot::plot_model(modzd_lmer, show.values = TRUE, show.p = TRUE,
+                   show.intercept = TRUE,
+                   title = "Effect of nourishment zone on Margalef's index (d)")
+sjPlot::tab_model(modzd_lmer)
+summary(modzd_lmer)
+
 ## Shannon ####
 anova(modzH <- lm(H ~ zone1*shore,
                   data=dfdivcur %>% filter(.,zone1 != "Wash")))
@@ -297,6 +334,16 @@ list(
 
 summary(modzH);aov(modzH)
 # sjPlot::plot_model(modzH,show.values=TRUE, show.p=TRUE)
+
+# as mixed model
+modzH_lmer <- lmerTest::lmer(H ~ zone1 + (1|shore),
+                             data=dfdivcur %>% filter(.,zone1!="Wash"))
+sjPlot::plot_model(modzH_lmer, show.values = TRUE, show.p = TRUE,
+                   show.intercept = TRUE,
+                   title = "Effect of nourishment zone on Shannon's H")
+sjPlot::tab_model(modzH_lmer)
+summary(modzH_lmer)
+
 
 ## Pielou ####
 anova(modzJ <- lm(J ~ zone1*shore,
@@ -318,10 +365,24 @@ list(
 summary(modzJ);aov(modzJ)
 # sjPlot::plot_model(modzJ,show.values=TRUE, show.p=TRUE)
 
+# as mixed model
+# replace NaN values with -10
+dfdivcur$J_proxy <- dfdivcur$J
+dfdivcur$J_proxy[is.nan(dfdivcur$J_proxy)] <- -10
+
+modzJ_lmer <- lmerTest::lmer(J_proxy ~ zone1 + (1|shore),
+                             data=dfdivcur %>% filter(.,zone1!="Wash"))
+sjPlot::plot_model(modzJ_lmer, show.values = TRUE, show.p = TRUE,
+                   show.intercept = TRUE,
+                   title = "Effect of nourishment zone on Pielou's J")
+sjPlot::tab_model(modzJ_lmer)
+summary(modzJ_lmer)
+
+
 ## tabulate models ####
 stargazer(modzS, modzNm2, modzbiom,modzd,modzJ,modzH, 
           type = "html", 
-          out =  "output/models/inf_Univ_2024_model_summary.html", 
+          out =  "output/models/inf_Univ_2024_model_summary2.html", 
           title = "Comparison of Models",
           column.labels = c("Taxon richness", "Abundance",
                             "Biomass","Margalef's d","Pielou's eveness",
