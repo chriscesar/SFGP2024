@@ -568,7 +568,8 @@ N <- ggplot(data = dfts, aes(y = log(Nm2+1), x = year, fill = zone1)) +
   geom_hline(yintercept = mean(log(dfts$N+1),na.rm = TRUE),colour="grey",linetype="dashed")+
   geom_hline(yintercept = min(log(dfts$N+1),na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_hline(yintercept = max(log(dfts$N+1),na.rm = TRUE),colour="grey",linetype="dotted")+
-  geom_boxplot(aes(group=year))+
+  geom_point(alpha=0.5)+
+  # geom_boxplot(aes(group=year))+
   geom_smooth(method = "loess", colour = "red", span = .9)+
   #geom_smooth(method = "gam", colour = "red", span = .9)+
   facet_grid(shore~zone1)+
@@ -582,7 +583,9 @@ N <- ggplot(data = dfts, aes(y = log(Nm2+1), x = year, fill = zone1)) +
         strip.text.y = element_text(size = 12),
         axis.text.x = element_text(angle = 270,hjust=1,vjust=0.5))
 
-png(file = "output/figs/inf.ts.logN.1996_loess.png",
+# png(file = "output/figs/inf.ts.logN.1996_loess_bx.png",
+#     width=12*ppi, height=6*ppi, res=ppi)
+png(file = "output/figs/inf.ts.logN.1996_loess_pt.png",
     width=12*ppi, height=6*ppi, res=ppi)
 # png(file = "output/figs/inf.ts.logN.1996_loess.png",
 #     width=12*ppi, height=6*ppi, res=ppi)
@@ -595,7 +598,7 @@ S <- ggplot(data = dfts, aes(y = S, x = year, fill = zone1))+
   geom_hline(yintercept = mean(dfts$S,na.rm = TRUE),colour="grey",linetype="dashed")+
   geom_hline(yintercept = min(dfts$S,na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_hline(yintercept = max(dfts$S,na.rm = TRUE),colour="grey",linetype="dotted")+
-  geom_boxplot(aes(group=year))+
+  geom_point(alpha=0.5)+#geom_boxplot(aes(group=year))+
   geom_smooth(method = "loess", colour = "red", span = .9)+
   # geom_smooth(method = "gam", colour = "red", span = .9)+
   facet_grid(shore~zone1)+
@@ -609,7 +612,9 @@ S <- ggplot(data = dfts, aes(y = S, x = year, fill = zone1))+
         axis.text.x = element_text(angle = 270,hjust=1,vjust=0.5))+
   coord_cartesian(ylim=c(0,NA))
 
-png(file = "output/figs/inf.ts.S.1996_loess.png",
+# png(file = "output/figs/inf.ts.S.1996_loess_bx.png",
+#     width=12*ppi, height=6*ppi, res=ppi)
+png(file = "output/figs/inf.ts.S.1996_loess_pt.png",
     width=12*ppi, height=6*ppi, res=ppi)
 # png(file = "output/figs/inf.ts.S.1996_gam.png",
 #     width=12*ppi, height=6*ppi, res=ppi)
