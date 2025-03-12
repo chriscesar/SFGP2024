@@ -168,12 +168,18 @@ visreg::visreg(ang_cur_mod1)
 performance::check_predictions(ang_cur_mod1)
 toc(log = TRUE)
 
+### WASH ONLY: compare transects ####
+ang_cu %>% filter(., zone1=="Wash") ->ang_cu_wa
+summary(m_ang_wa <- lm(value ~ shore, data=ang_cu_wa))
+
+
 ## time series ####
 png(file = "output/figs/sed.ang.ts.png",
     width=12*ppi, height=6*ppi, res=ppi)
 df %>% 
   filter(.,type=="angle") %>% 
-  filter(., zone1 != "Wash") %>% droplevels(.) %>% 
+  #filter(., zone1 != "Wash") %>%
+  droplevels(.) %>% 
   mutate(value = as.numeric(value)) %>% 
   filter(., value >= 0) %>% 
   dplyr::select(.,c(year,shore,type,value,zone1)) %>% 
@@ -222,7 +228,9 @@ com_cu_st[which.max(com_cu_st$mean.cone),]
 ### boxplot ###
 png(file = paste0("output/figs/sed.",cur.yr,".sed.mor.pen.png"),
     width=12*ppi, height=6*ppi, res=ppi)
-set.seed(pi); ggplot(data = com_cu, aes(y = value, x = zone1,
+set.seed(pi); com_cu %>% 
+  #filter(., zone1 != "Wash") %>% 
+  ggplot(data = ., aes(y = value, x = zone1,
                                         fill=zone1))+
   geom_boxplot(outlier.colour=NA)+
   geom_jitter(aes(shape = zone1),
