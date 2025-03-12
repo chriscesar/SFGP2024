@@ -137,7 +137,8 @@ S <- ggplot(data = dfw, aes(y = S, x = year, fill = zone1))+
   geom_hline(yintercept = mean(dfw$S,na.rm = TRUE),colour="grey",linetype="dashed")+
   geom_hline(yintercept = min(dfw$S,na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_hline(yintercept = max(dfw$S,na.rm = TRUE),colour="grey",linetype="dotted")+
-  geom_boxplot(aes(group=year))+
+  geom_point()+
+  #geom_boxplot(aes(group=year))+
   # geom_jitter(alpha=0.6)+
   geom_smooth(method = "loess", colour = "red", span = .9)+
   # geom_smooth(method = "loess", span = .9, aes(group=mon, col=mon))+
@@ -154,7 +155,9 @@ S <- ggplot(data = dfw, aes(y = S, x = year, fill = zone1))+
         axis.text.x = element_text(angle = 270,hjust=1,vjust=0.5))+
   coord_cartesian(ylim=c(0,NA));S
 
-png(file = "output/figs/epi.ts.S_loess.png",
+# png(file = "output/figs/epi.ts.S_loess_bx.png",
+#     width=12*ppi, height=6*ppi, res=ppi)
+png(file = "output/figs/epi.ts.S_loess_pt.png",
     width=12*ppi, height=6*ppi, res=ppi)
 # png(file = "output/figs/epi.ts.S_gam.png",
 #     width=12*ppi, height=6*ppi, res=ppi)
@@ -167,14 +170,16 @@ N <- ggplot(data = dfw, aes(y = log(N+1), x = year, fill = zone1))+
   geom_hline(yintercept = mean(log(dfw$N+1),na.rm = TRUE),colour="grey",linetype="dashed")+
   geom_hline(yintercept = min(log(dfw$N+1),na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_hline(yintercept = max(log(dfw$N+1),na.rm = TRUE),colour="grey",linetype="dotted")+
-  geom_boxplot(aes(group=year))+
+  geom_point()+
+  # geom_boxplot(aes(group=year))+
   geom_smooth(method = "loess", colour = "red", span = .9)+
   # geom_smooth(method = "gam", colour = "red", span = .9)+
   facet_grid(depth~zone1)+
   scale_colour_manual(name = "", values=cbPalette)+
   scale_fill_manual(name = "", values=cbPalette)+
   scale_x_continuous(breaks = seq(2011, 2023, by = 2))+
-  xlab("Year") + ylab(bquote("Faunal density"))+
+  xlab("Year") + ylab(bquote(bold(Log[(n+1)]~Faunal~density)))+
+    #"Log""Faunal density"))+
   theme(legend.position="none",
         axis.title = element_text(face=2),
         strip.text.x = element_text(size = 12,face=2),
@@ -182,7 +187,9 @@ N <- ggplot(data = dfw, aes(y = log(N+1), x = year, fill = zone1))+
         axis.text.x = element_text(angle = 270,hjust=1,vjust=0.5))+
   coord_cartesian(ylim=c(0,NA));N
 
-png(file = "output/figs/epi.ts.N_loess.png",
+# png(file = "output/figs/epi.ts.N_loess_bx.png",
+#     width=12*ppi, height=6*ppi, res=ppi)
+png(file = "output/figs/epi.ts.N_loess_pt.png",
     width=12*ppi, height=6*ppi, res=ppi)
 # png(file = "output/figs/epi.ts.S_gam.png",
 #     width=12*ppi, height=6*ppi, res=ppi)
