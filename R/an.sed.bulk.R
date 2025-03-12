@@ -12,6 +12,9 @@ tictoc::tic.clearlog();tic("Proj set up")
 ### load metadata ####
 source("R/00_meta_setMeta.R")
 
+##rearrange colours for Wash
+cbPalette <- cbPalette[c(1,2,3,4,7,5,6,8,9)]
+
 ### load & format data ####
 df0 <- as_tibble(openxlsx::read.xlsx(paste0(fol,"sed.psa.bulkWIP_use.xlsx"),
                                      sheet="sed.bulk.ts.out"))
@@ -19,11 +22,13 @@ df0 <- as_tibble(openxlsx::read.xlsx(paste0(fol,"sed.psa.bulkWIP_use.xlsx"),
 df0$transect <- factor(df0$transect,levels=c("T1N","T1","T1S",
                                              "T4","T11","T7","T8","T12","T13",
                                              "T15", "T17", "T20", "T21", "T22",
-                                             "T23", "T24","T25","T26"))
+                                             "T23", "T24","T25","T26",
+                                             "WA1","WA5","WA6"
+                                             ))
 # "WA1"))
 
 df0$shore <- factor(df0$shore,levels=c("Upper","Mid","Low","Surf"))
-df0$zone1 <- factor(df0$zone1,levels=c("Above","Inside","Inside2","Below"))
+df0$zone1 <- factor(df0$zone1,levels=c("Above","Inside","Inside2","Below","Wash"))
 
 df0$MEAN_folkWard_desc <- factor(df0$MEAN_folkWard_desc,
                                  levels=c("Fine Gravel",
@@ -110,6 +115,7 @@ df0$SEDIMENT.NAME <- factor(df0$SEDIMENT.NAME,levels=
                                     "Very Fine Gravelly Fine Silty Fine Sand",
                                     "Moderately Well Sorted Fine Sand",
                                     "Well Sorted Fine Sand",
+                                    "Slightly Medium Gravelly Very Fine Sand",
                                     "Slightly Coarse Gravelly Very Coarse Silty Very Fine Sand",
                                     "Slightly Medium Gravelly Very Coarse Silty Very Fine Sand",
                                     "Slightly Fine Gravelly Medium Silty Very Fine Sand",
