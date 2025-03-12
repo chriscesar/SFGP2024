@@ -49,7 +49,7 @@ r2 <- df_psa$MEAS_RESULT
 r <- c(r1,r2);rm(r1,r2)
 
 t1 <- df_sed_old_trm$transect
-t2 <- df_psa$Transect
+t2 <- as.character(df_psa$Transect)
 t <- c(t1,t2);rm(t1,t2)
 
 df_pl <- as_tibble(data.frame("year" = yr,"transect"=t,"method"=m,"phi" = p,
