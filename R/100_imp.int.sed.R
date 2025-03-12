@@ -17,7 +17,7 @@ ab <- c("T1N","T1","T1S")
 inside <- c("T4","T7","T8","T11","T12")
 inside2 <- "T13"
 bel <- c("T15","T21","T22","T23","T24","T25","T26")
-wash <- c("WA1")
+wash <- c("WA1","WA5","WA6")
 
 df_sed <- readxl::read_xlsx(paste0(fol,"sed.data.ALL.USE.xlsx"), sheet = "AllDat") %>% 
   filter(., DetUse != "Remove: metadata") %>%  # drop unneeded rows
@@ -42,7 +42,7 @@ df_sed$Transect <- factor(df_sed$Transect,
                             "T4","T7", "T8", "T11", "T12",
                             "T13",
                             "T15", "T21", "T22", "T23","T24", "T25","T26",
-                            "WA1"
+                            "WA1","WA5","WA6"
                           ))
 
 # load and append older data ####
@@ -52,8 +52,8 @@ df_sed_bulk <- readxl::read_xlsx(paste0(fol,"sed.psa.bulkWIP_use.xlsx"),
                                  sheet="sed.bulk.ts.out")
 df_sed_bulk$transect <- factor(df_sed_bulk$transect, levels=c(
   "T1N","T1","T1S","T4","T11","T7", "T8", "T12", "T13", "T15", "T17",
-  "T20","T21", "T22", "T23", "T24", "T25", "T26","WA1"
-))
+  "T20","T21", "T22", "T23", "T24", "T25", "T26","WA1","WA5","WA6"
+  ))
 
 df_sed_bulk$shore <- factor(df_sed_bulk$shore,levels=c("Upper","Mid","Low","Surf"))
 df_sed_bulk$zone1 <- factor(df_sed_bulk$zone1, levels=c("Above","Inside","Inside2","Below","Wash"))
