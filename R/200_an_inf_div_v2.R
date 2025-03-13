@@ -655,8 +655,8 @@ J <- ggplot(data = dfts, aes(y = J, x = year, fill = zone1))+
   geom_hline(yintercept = min(dfts$J,na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_hline(yintercept = max(dfts$J,na.rm = TRUE),colour="grey",linetype="dotted")+
   geom_boxplot(aes(group=year))+
-  geom_smooth(method = "gam", colour = "red", span = .9)+
-  # geom_smooth(method = "loess", colour = "red", span = .9)+
+  # geom_smooth(method = "gam", colour = "red", span = .9)+
+  geom_smooth(method = "loess", colour = "red", span = .9)+
   facet_grid(shore~zone1)+
   scale_colour_manual(name = "", values=cbPalette)+
   scale_fill_manual(name = "", values=cbPalette)+
@@ -668,10 +668,10 @@ J <- ggplot(data = dfts, aes(y = J, x = year, fill = zone1))+
   scale_x_continuous(breaks = seq(1996, 2024, by = 4))+
   coord_cartesian(ylim=c(0,NA))
 
-# png(file = "output/figs/inf.ts.J.1996_loess.png",
-# width=12*ppi, height=6*ppi, res=ppi)
-png(file = "output/figs/inf.ts.J.1996_gam.png",
-    width=12*ppi, height=6*ppi, res=ppi)
+png(file = "output/figs/inf.ts.J.1996_loess.png",
+width=12*ppi, height=6*ppi, res=ppi)
+# png(file = "output/figs/inf.ts.J.1996_gam.png",
+    # width=12*ppi, height=6*ppi, res=ppi)
 print(J);
 dev.off();
 rm(J)
