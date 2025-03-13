@@ -139,7 +139,7 @@ df_psa %>%
   geom_line(aes(group=Transect,colour=zone1),size = 1.25)+
   ylab ("Percentage contribution")+
   geom_point(aes(group=Transect,shape=zone1,fill=zone1),size=3)+
-  scale_shape_manual(values = c(21:24)) +#tell R which symbols to use
+  scale_shape_manual(values = c(21:25)) +#tell R which symbols to use
   theme(legend.position=c(0.5,0.5),
         legend.direction = "horizontal",
         legend.title = element_blank(),
@@ -148,8 +148,8 @@ df_psa %>%
         legend.background=element_rect(fill=alpha("white",0.1))
   )+
   facet_wrap(~ Shore, ncol = 2)+
-  scale_colour_manual(values=cbPalette)+
-  scale_fill_manual(values=cbPalette)+
+  scale_colour_manual(values=cbPalette[c(1,2,3,4,7)])+
+  scale_fill_manual(values=cbPalette[c(1,2,3,4,7)])+
   #xlim(NA,10)+
   scale_x_continuous(breaks = seq(-6, 10, by = 2))+
   labs(title=paste0("Sediment grain size distributions ",cur.yr),
@@ -160,9 +160,9 @@ df_psa %>%
     strip.text = element_text(face=2),
     axis.title = element_text(face=2)
   ) -> pl
-png("output/figs/sed.cur.psahires.png", width=12,height = 8,units = "in",res=ppi)
+png(paste0("output/figs/sed.",cur.yr,".psahires.png"), width=12,height = 8,units = "in",res=ppi)
 print(pl)
-dev.off()
+dev.off();rm(pl)
 
 #### Mean phi ####
 # phi.mod <- aov(mean.phi ~ zone1*shore, data = df0);
