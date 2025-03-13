@@ -16,13 +16,35 @@ df0 <- openxlsx::read.xlsx(paste0(fol,"sed.psa.bulkWIP_use.xlsx"),sheet="sed.bul
 ### keep only 5cm cores
 df <- df0 %>% 
   filter(., method !="15cm") %>% 
-  filter(.,transect !="WA1") %>% droplevels(.)
+  filter(.,zone1 !="Wash") %>% droplevels(.)
 
 ### sort factors ####
 df$shore <- factor(df$shore,levels=c("Upper","Mid","Low","Surf"))
 df$zone1 <- factor(df$zone1,levels=c("Above","Inside","Inside2","Below"))
 
 ### Mean phi ####
+# box_point
+h <- ggplot(data = df, aes(y = MEAN_folkWard_phi, x = year, fill = zone1))+
+  geom_hline(data=df,aes(yintercept=mean(MEAN_folkWard_phi)),lty=2, col="grey")+
+  geom_boxplot(aes(group=year),outliers = FALSE)+
+  geom_line(aes(group=site_code),colour = "grey80")+
+  geom_point(pch = 21,fill="darkgrey")+
+  geom_smooth(method = "loess", colour = "red", span = 0.9)+
+  facet_grid(shore~zone1)+
+  scale_colour_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPalette)+
+  xlab("Year") + ylab(expression(bold(paste("Mean ",phi))))+
+  theme(legend.position="none",
+        strip.text.x = element_text(size = 12, face = 2),
+        strip.text.y = element_text(size = 12, face = 2),
+        axis.title = element_text(face=2),
+        axis.text.x = element_text(angle=90*3,vjust = .5)
+  )
+png(file = "output/figs/sed.ts.meanphi.box.png",
+    width=12*ppi, height=6*ppi, res=ppi)
+print(h);
+dev.off(); rm(h)
+
 ###Box
 h <- ggplot(data = df, aes(y = MEAN_folkWard_phi, x = year, fill = zone1))+
   geom_hline(data=df,aes(yintercept=mean(MEAN_folkWard_phi)),lty=2, col="grey")+
@@ -31,15 +53,15 @@ h <- ggplot(data = df, aes(y = MEAN_folkWard_phi, x = year, fill = zone1))+
   facet_grid(shore~zone1)+
   scale_colour_manual(name = "", values=cbPalette)+
   scale_fill_manual(name = "", values=cbPalette)+
-  #scale_x_continuous(breaks = seq(2007, 2019, by = 3))+
-  xlab("Year") + ylab(expression(paste("Mean ",phi)))+
+  # scale_x_continuous(breaks = seq(2007, 2019, by = 3))+
+  xlab("Year") + ylab(expression(bold(paste("Mean ",phi))))+
   theme(legend.position="none",
         strip.text.x = element_text(size = 12),
         strip.text.y = element_text(size = 12))
-png(file = "output/figs/sed.ts.meanphi.box.png",
-    width=12*ppi, height=6*ppi, res=ppi)
-print(h);
-dev.off(); #rm(h)
+# png(file = "output/figs/psa/sed.ts.meanphi.box.png",
+#     width=12*ppi, height=6*ppi, res=ppi)
+# print(h);
+# dev.off(); rm(h)
 
 ### Line
 k <- ggplot(data = df, aes(x = year, y = MEAN_folkWard_phi, group = transect))+
@@ -75,6 +97,28 @@ print(ptc);
 dev.off(); rm(k,h,ptc)
 
 ### Sorting ####
+# box_point
+h <- ggplot(data = df, aes(y = SORTING_folkWard_phi, x = year, fill = zone1))+
+  geom_hline(data=df,aes(yintercept=mean(SORTING_folkWard_phi)),lty=2, col="grey")+
+  geom_boxplot(aes(group=year),outliers = FALSE)+
+  geom_line(aes(group=site_code),colour = "grey80")+
+  geom_point(pch = 21,fill="darkgrey")+
+  geom_smooth(method = "loess", colour = "red", span = 0.9)+
+  facet_grid(shore~zone1)+
+  scale_colour_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPalette)+
+  xlab("Year") + ylab("Sorting coefficient")+
+  theme(legend.position="none",
+        strip.text.x = element_text(size = 12, face = 2),
+        strip.text.y = element_text(size = 12, face = 2),
+        axis.title = element_text(face=2),
+        axis.text.x = element_text(angle=90*3,vjust = .5)
+  )
+png(file = "output/figs/sed.ts.sort.box.png",
+    width=12*ppi, height=6*ppi, res=ppi)
+print(h);
+dev.off(); rm(h)
+
 ###Box
 h <- ggplot(data = df, aes(y = SORTING_folkWard_phi, x = year, fill = zone1))+
   geom_hline(data=df,aes(yintercept=mean(SORTING_folkWard_phi)),lty=2, col="grey")+
@@ -126,6 +170,28 @@ print(ptc);
 dev.off(); rm(k,h,ptc)
 
 ### Skew ####
+# box_point
+h <- ggplot(data = df, aes(y = SKEWNESS_folkWard_phi, x = year, fill = zone1))+
+  geom_hline(data=df,aes(yintercept=mean(SKEWNESS_folkWard_phi)),lty=2, col="grey")+
+  geom_boxplot(aes(group=year),outliers = FALSE)+
+  geom_line(aes(group=site_code),colour = "grey80")+
+  geom_point(pch = 21,fill="darkgrey")+
+  geom_smooth(method = "loess", colour = "red", span = 0.9)+
+  facet_grid(shore~zone1)+
+  scale_colour_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPalette)+
+  xlab("Year") + ylab("Skew")+
+  theme(legend.position="none",
+        strip.text.x = element_text(size = 12, face = 2),
+        strip.text.y = element_text(size = 12, face = 2),
+        axis.title = element_text(face=2),
+        axis.text.x = element_text(angle=90*3,vjust = .5)
+  )
+png(file = "output/figs/sed.ts.skew.box.png",
+    width=12*ppi, height=6*ppi, res=ppi)
+print(h);
+dev.off(); rm(h)
+
 ###Box
 h <- ggplot(data = df, aes(y = SKEWNESS_folkWard_phi, x = year, fill = zone1))+
   geom_hline(data=df,aes(yintercept=mean(SKEWNESS_folkWard_phi)),lty=2, col="grey")+
@@ -174,6 +240,28 @@ print(ptc);
 dev.off(); rm(k,h,ptc)
 
 ### Kurtosis ####
+# box_point
+h <- ggplot(data = df, aes(y = KURTOSIS_folkWard_phi, x = year, fill = zone1))+
+  geom_hline(data=df,aes(yintercept=mean(KURTOSIS_folkWard_phi)),lty=2, col="grey")+
+  geom_boxplot(aes(group=year),outliers = FALSE)+
+  geom_line(aes(group=site_code),colour = "grey80")+
+  geom_point(pch = 21,fill="darkgrey")+
+  geom_smooth(method = "loess", colour = "red", span = 0.9)+
+  facet_grid(shore~zone1)+
+  scale_colour_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPalette)+
+  xlab("Year") + ylab("Kurtosis")+
+  theme(legend.position="none",
+        strip.text.x = element_text(size = 12, face = 2),
+        strip.text.y = element_text(size = 12, face = 2),
+        axis.title = element_text(face=2),
+        axis.text.x = element_text(angle=90*3,vjust = .5)
+  )
+png(file = "output/figs/sed.ts.kurt.box.png",
+    width=12*ppi, height=6*ppi, res=ppi)
+print(h);
+dev.off(); rm(h)
+
 ###Box
 h <- ggplot(data = df, aes(y = KURTOSIS_folkWard_phi, x = year, fill = zone1))+
   geom_hline(data=df,aes(yintercept=mean(KURTOSIS_folkWard_phi)),lty=2, col="grey")+
@@ -219,6 +307,29 @@ print(ptc);
 dev.off(); rm(k,h,ptc)
 
 ### Prop grav####
+# box_point
+h <- ggplot(data = df, aes(y = GRAVEL_perc, x = year, fill = zone1))+
+  geom_hline(data=df,aes(yintercept=mean(GRAVEL_perc)),lty=2, col="grey")+
+  geom_boxplot(aes(group=year),outliers = FALSE)+
+  geom_line(aes(group=site_code),colour = "grey80")+
+  geom_point(pch = 21,fill="darkgrey")+
+  geom_smooth(method = "loess", colour = "red", span = 0.9)+
+  facet_grid(shore~zone1)+
+  scale_colour_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPalette)+
+  xlab("Year") + ylab("Proportion of gravel")+
+  coord_cartesian(ylim=c(0,NA))+
+  theme(legend.position="none",
+        strip.text.x = element_text(size = 12, face = 2),
+        strip.text.y = element_text(size = 12, face = 2),
+        axis.title = element_text(face=2),
+        axis.text.x = element_text(angle=90*3,vjust = .5)
+  )
+png(file = "output/figs/sed.ts.propgrav.box.png",
+    width=12*ppi, height=6*ppi, res=ppi)
+print(h);
+dev.off(); rm(h)
+
 ### Box
 h <- ggplot(data = df, aes(y = GRAVEL_perc, x = year, fill = zone1))+
   geom_hline(data=df,aes(yintercept=mean(GRAVEL_perc)),lty=2, col="grey")+
@@ -262,6 +373,29 @@ print(ptc);
 dev.off(); rm(k,h,ptc)
 
 ### Prop sand ####
+# box_point
+h <- ggplot(data = df, aes(y = SAND_perc, x = year, fill = zone1))+
+  geom_hline(data=df,aes(yintercept=mean(SAND_perc)),lty=2, col="grey")+
+  geom_boxplot(aes(group=year),outliers = FALSE)+
+  geom_line(aes(group=site_code),colour = "grey80")+
+  geom_point(pch = 21,fill="darkgrey")+
+  geom_smooth(method = "loess", colour = "red", span = 0.9)+
+  facet_grid(shore~zone1)+
+  scale_colour_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPalette)+
+  xlab("Year") + ylab("Proportion of sand")+
+  coord_cartesian(ylim=c(0,NA))+
+  theme(legend.position="none",
+        strip.text.x = element_text(size = 12, face = 2),
+        strip.text.y = element_text(size = 12, face = 2),
+        axis.title = element_text(face=2),
+        axis.text.x = element_text(angle=90*3,vjust = .5)
+  )
+png(file = "output/figs/sed.ts.propsand.box.png",
+    width=12*ppi, height=6*ppi, res=ppi)
+print(h);
+dev.off(); rm(h)
+
 ### Box
 h <- ggplot(data = df, aes(y = SAND_perc, x = year, fill = zone1))+
   geom_hline(data=df,aes(yintercept=mean(SAND_perc)),lty=2, col="grey")+
@@ -304,6 +438,29 @@ print(ptc);
 dev.off(); rm(k,h,ptc)
 
 ### Prop mud ####
+# box_point
+h <- ggplot(data = df, aes(y = MUD_perc, x = year, fill = zone1))+
+  geom_hline(data=df,aes(yintercept=mean(MUD_perc)),lty=2, col="grey")+
+  geom_boxplot(aes(group=year),outliers = FALSE)+
+  geom_line(aes(group=site_code),colour = "grey80")+
+  geom_point(pch = 21,fill="darkgrey")+
+  geom_smooth(method = "loess", colour = "red", span = 0.9)+
+  facet_grid(shore~zone1)+
+  scale_colour_manual(name = "", values=cbPalette)+
+  scale_fill_manual(name = "", values=cbPalette)+
+  xlab("Year") + ylab("Proportion of silt")+
+  coord_cartesian(ylim=c(0,NA))+
+  theme(legend.position="none",
+        strip.text.x = element_text(size = 12, face = 2),
+        strip.text.y = element_text(size = 12, face = 2),
+        axis.title = element_text(face=2),
+        axis.text.x = element_text(angle=90*3,vjust = .5)
+  )
+png(file = "output/figs/sed.ts.propsilt.box.png",
+    width=12*ppi, height=6*ppi, res=ppi)
+print(h);
+dev.off(); rm(h)
+
 ### Box
 h <- ggplot(data = df, aes(y = MUD_perc, x = year, fill = zone1))+
   geom_hline(data=df,aes(yintercept=mean(MUD_perc)),lty=2, col="grey")+
