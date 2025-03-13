@@ -301,8 +301,8 @@ df %>%
   dplyr::select(.,c(year,shore,type,value,zone1)) %>% 
   ggplot(.,
        aes(y = as.numeric(value), x = year, fill = zone1))+
-  geom_vline(xintercept = seq(2008,cur.yr,by=1),linetype=2, colour="lightgrey")+
-  geom_hline(yintercept = seq(0,40,by=10),linetype=2, colour="lightgrey")+
+  # geom_vline(xintercept = seq(2008,cur.yr,by=1),linetype=2, colour="lightgrey")+
+  # geom_hline(yintercept = seq(0,40,by=10),linetype=2, colour="lightgrey")+
   geom_boxplot(aes(group=year),outlier.shape = NA)+
   geom_jitter(width = 0.1, height = 0,alpha=0.3)+
   geom_smooth(method = "loess", colour = "red", span = .9)+
