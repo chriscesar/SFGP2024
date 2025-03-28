@@ -75,6 +75,49 @@ set.seed(pi); ggplot(data = ang_cu, aes(y = value, x = zone1,
   guides(fill=guide_legend(nrow=1))
 dev.off()
 
+png(file = paste0("output/figs/sed.",cur.yr,".sed.mor.angle_v2.png"),
+    width=12*ppi, height=6*ppi, res=ppi)
+set.seed(pi); df %>% 
+  filter(!(zone1 %in% c("Above", "Inside", "Inside2", "Below") & year == 2024)) %>% 
+  filter(., type == "angle") %>% 
+  mutate(., value = as.numeric(value)) %>% 
+  ggplot(data = ., aes(y = value, x = zone1,
+                       fill=zone1))+
+  geom_boxplot(outlier.colour=NA)+
+  geom_jitter(aes(shape = zone1),
+              width = 0.3, height = 0.05,size = 3,stroke = 1,
+              show.legend = FALSE)+
+  scale_shape_manual(values = c(21:(length(unique(ang_cu$zone1))+21)))+
+  labs(title = paste0("Beach slopes recorded since 2008"),
+       subtitle = "2024 data excluded from non-Wash stations")+
+  theme(plot.title = element_text(face = "bold"),
+        legend.position = "bottom",#c(.5,1.02),
+        legend.direction = "horizontal",
+        legend.key.size = unit(1,"cm"),#change legend size!
+        legend.title=element_blank(),
+        legend.text=element_text(size = 12,
+                                 face = "bold"),
+        legend.box.margin=margin(-10,-10,-10,-10),
+        legend.margin=margin(0,0,0,0),
+        axis.text.y = element_text(size = 12),
+        axis.title.y = element_text(size = 14),
+        strip.text.x = element_text(size = 12),
+        strip.text = element_text(face="bold")
+  )+
+  xlab("") + ylab("Beach angle (°)")+
+  scale_fill_manual(values=cbPaletteFill[c(1:4,7)])+
+  scale_x_discrete(breaks=NULL)+
+  facet_wrap(~shore)+
+  guides(fill=guide_legend(nrow=1))
+dev.off()
+
+df %>% 
+  filter(!(zone1 %in% c("Above", "Inside", "Inside2", "Below") & year == 2024)) %>% 
+  filter(., type == "angle") %>% 
+  mutate(., value = as.numeric(value)) %>% 
+  summarise(mn = mean(value),
+            sd = sd(value))
+
 ## Get summary ####
 ## mean by zone & shore: current year
 (mean_23 <- ang_cu %>%
