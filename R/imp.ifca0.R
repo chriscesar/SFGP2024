@@ -3,7 +3,7 @@
 
 # Set up ####
 ## load packages ####
-ld_pkgs <- c("tidyverse","tictoc")
+ld_pkgs <- c("tidyverse","tictoc","patchwork")
 vapply(ld_pkgs, library, logical(1L),
        character.only = TRUE, logical.return = TRUE)
 rm(ld_pkgs)
@@ -354,7 +354,7 @@ vols <- droplevels(vols[vols$measure == "sand nourishment",])
 vols$sand_m3 <- vols$value
 
 ### subset data
-vols <- subset(vols, year<2024 & year>2003)
+vols <- subset(vols, year<2025 & year>2003)
 tot.fr <- subset(tot, bed == "Friskney")
 tot.wr <- subset(tot, bed == "Wrangle")
 tot.fr.interp <- subset(tot.interp, bed == "Friskney")
@@ -395,6 +395,37 @@ dev.off()
 # abline(v = 0, col = "light grey", lty = 4)
 # text(-8.75, -0.35, "Wrangle", cex = 1.5) #b) = WRANGLE
 # dev.off()
+
+ifca %>% 
+  #mutate(code = paste0(bed,"_",class)) %>% 
+  ggplot(., aes(x = year, y = tonnes))+
+  geom_bar(stat = "identity" ,colour=1,aes(fill=class))+
+  # facet_wrap(.~code,nrow = 4,ncol = 1) -> pl1
+  facet_wrap(.~bed,nrow = 4,ncol = 1)+
+  ylab("Cockle stocks (tonnes)")+
+  scale_fill_discrete(name = "", labels = c("Adult", "Juvenile"))+
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(face = 2),
+        strip.text.x = element_text(face = 2),
+        axis.text.x = element_text(face = 2),
+        legend.title=element_blank(),
+        legend.text = element_text(face = 2)
+        )-> pl1
+
+vols %>% 
+  ggplot(.,aes(x = year, y = value))+
+  geom_bar(stat = "identity", fill="grey",colour=1) +
+  ylab("Nourishment volume (tonnes)")+
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(face = 2),
+        axis.text.x = element_text(face = 2))-> pl2
+
+pout <- pl2/pl1
+png(file = "output/figs/ifca.nourish_Cockle.png",
+    width = 12 * ppi, height = 6 * ppi, res = ppi)
+pout
+dev.off()
+rm(pl1,pl2,pout)
 toc(log = TRUE)
 
 ### Tidy up ####
@@ -403,10 +434,11 @@ rm(list = ls(pattern = "^ju"))
 rm(list = ls(pattern = "^fr"))
 rm(list = ls(pattern = "^df"))
 rm(list = ls(pattern = "^wr"))
+rm(list = ls(pattern = "^cb"))
 rm(list = ls(pattern = "^ifca"))
 rm(list = ls(pattern = "^tot"))
 rm(list = ls(pattern = "^sed"))
-rm(vols,cbPalette,ppi,cur.yr,fol, cbPaletteTxt,gisfol,perm,url)
+rm(sum_zero,vols,cbPalette,ppi,cur.yr,fol, cbPaletteTxt,gisfol,perm,url,projfol)
 
 detach("package:tidyverse", unload = TRUE)
 detach("package:tictoc", unload = TRUE)
